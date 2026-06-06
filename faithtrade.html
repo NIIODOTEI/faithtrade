@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FaithTrade — Your Market</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="faithtrade.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<!-- ROLE SELECT -->
+<div id="role-select">
+  <div class="rs-top">
+    <span style="font-size:22px">🛒</span>
+    <div>
+      <div class="rs-logo">FaithTrade</div>
+      <div class="rs-tag">Your Market</div>
+    </div>
+  </div>
+  <div class="rs-body">
+    <svg viewBox="0 0 1200 700" xmlns="http://www.w3.org/2000/svg" class="wave" preserveAspectRatio="xMidYMid slice">
+      <path d="M0,350 C200,200 500,500 800,350 C1000,250 1100,420 1200,350 L1200,700 L0,700 Z" fill="rgba(255,255,255,0.06)"/>
+      <path d="M0,500 C300,350 600,560 900,440 C1050,380 1150,500 1200,460 L1200,700 L0,700 Z" fill="rgba(255,255,255,0.04)"/>
+      <path d="M0,180 C200,80 500,260 700,160 C900,60 1050,220 1200,160 L1200,0 L0,0 Z" fill="rgba(255,255,255,0.05)"/>
+      <circle cx="1050" cy="120" r="180" fill="rgba(255,255,255,0.04)"/>
+      <circle cx="150" cy="580" r="140" fill="rgba(255,255,255,0.03)"/>
+    </svg>
+    <div class="rs-inner">
+      <h1 class="rs-h">Welcome to FaithTrade</h1>
+      <p class="rs-p">Your Market — Connect, Buy &amp; Sell Globally</p>
+      <div class="rs-cards">
+        <div class="rs-card">
+          <div class="rs-icon">🛍️</div>
+          <h3>I'm a Buyer</h3>
+          <p>Browse verified products from global sellers</p>
+          <button class="rs-btn" onclick="goAuth('buyer')">Sign In as Buyer</button>
+        </div>
+        <div class="rs-card">
+          <div class="rs-icon">🏪</div>
+          <h3>I'm a Seller</h3>
+          <p>List products and reach buyers worldwide</p>
+          <button class="rs-btn" onclick="goAuth('seller')">Sign In as Seller</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="al">
+    <div class="al-logo">
+      <span style="font-size:26px">🛒</span>
+      <div>
+        <div class="al-logo-text">FaithTrade</div>
+        <div class="al-logo-sub">Your Market</div>
+      </div>
+    </div>
+    <div class="auth-box" id="auth-box"></div>
+  </div>
+  <div class="ar">
+    <svg viewBox="0 0 700 900" xmlns="http://www.w3.org/2000/svg" class="wave" preserveAspectRatio="xMidYMid slice">
+      <path d="M0,450 C150,250 400,650 700,450 L700,900 L0,900 Z" fill="rgba(255,255,255,0.07)"/>
+      <path d="M0,600 C200,420 500,720 700,550 L700,900 L0,900 Z" fill="rgba(255,255,255,0.04)"/>
+      <path d="M0,200 C150,80 400,320 700,200 L700,0 L0,0 Z" fill="rgba(255,255,255,0.05)"/>
+      <circle cx="550" cy="150" r="160" fill="rgba(255,255,255,0.05)"/>
+      <circle cx="80" cy="750" r="120" fill="rgba(255,255,255,0.04)"/>
+      <circle cx="350" cy="450" r="200" fill="rgba(255,255,255,0.03)"/>
+    </svg>
+    <div class="ar-content">
+      <h2 id="ar-title">Shop Globally,<br>Trade Faithfully</h2>
+      <p id="ar-desc">Join thousands of buyers and sellers on FaithTrade's trusted international marketplace.</p>
+      <div class="dots"><span class="on"></span><span></span><span></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- BUYER PORTAL -->
+<div id="buyer-portal">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="sb-logo"><span style="font-size:18px">🛒</span><div class="sb-logo-text">FaithTrade</div></div>
+      <nav class="sb-nav">
+        <button class="ni on" onclick="bNav('home',this)"><span class="ic">🏠</span><span>Home</span></button>
+        <button class="ni" onclick="bNav('browse',this)"><span class="ic">🔍</span><span>Browse Library</span></button>
+        <button class="ni" onclick="bNav('orders',this)"><span class="ic">📦</span><span>My Orders</span></button>
+        <button class="ni" onclick="bNav('messages',this)"><span class="ic">💬</span><span>Messages</span></button>
+        <button class="ni" onclick="bNav('feed',this)"><span class="ic">📰</span><span>Community Feed</span></button>
+      </nav>
+      <div class="sb-user">
+        <div class="ava" id="b-ava">B</div>
+        <div class="sb-uinfo"><div class="sb-uname" id="b-uname">Buyer</div><div class="sb-urole">Buyer Account</div></div>
+        <button class="sb-logout" onclick="logout()">🚪</button>
+      </div>
+    </aside>
+    <div class="pmain">
+      <div class="ptop">
+        <div class="ptop-title"><span id="b-ticon">🏠</span>&nbsp;<span id="b-ttitle">Home</span></div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="cart-btn" onclick="openCart()">🛒 Cart <span class="cbadge" id="cart-count">0</span></button>
+        </div>
+      </div>
+      <div class="pcontent">
+        <div id="b-home" class="tc on">
+          <div class="hero">
+            <svg viewBox="0 0 900 190" xmlns="http://www.w3.org/2000/svg" class="wave" preserveAspectRatio="xMidYMid slice">
+              <path d="M0,95 C200,35 400,155 700,95 C800,65 850,115 900,95 L900,190 L0,190 Z" fill="rgba(255,255,255,0.07)"/>
+              <circle cx="800" cy="48" r="90" fill="rgba(255,255,255,0.05)"/>
+            </svg>
+            <div class="hero-content"><h2>Welcome back, <span id="b-hname">Buyer</span>! 👋</h2><p>Discover authentic products from verified global sellers</p></div>
+          </div>
+          <div class="sc">
+            <div class="sc-head"><div><div class="sc-title">Featured Products</div><div class="sc-sub">Handpicked from top sellers worldwide</div></div></div>
+            <div class="pg" id="home-pg"></div>
+          </div>
+        </div>
+        <div id="b-browse" class="tc">
+          <div class="sc">
+            <div class="sc-head">
+              <div><div class="sc-title">Browse Library</div><div class="sc-sub">All marketplace products</div></div>
+              <div class="sbox"><span style="color:var(--text-muted)">🔍</span><input type="text" placeholder="Search..." oninput="searchProd(this.value)"></div>
+            </div>
+            <div class="chips">
+              <button class="chip on" onclick="fCat('all',this)">All</button>
+              <button class="chip" onclick="fCat('electronics',this)">⚡ Electronics</button>
+              <button class="chip" onclick="fCat('fashion',this)">👗 Fashion</button>
+              <button class="chip" onclick="fCat('food',this)">🥬 Food &amp; Agro</button>
+              <button class="chip" onclick="fCat('crafts',this)">🎨 Crafts</button>
+              <button class="chip" onclick="fCat('health',this)">💆 Health</button>
+            </div>
+            <div class="pg" id="browse-pg"></div>
+          </div>
+        </div>
+        <div id="b-orders" class="tc">
+          <div class="sc"><div class="sc-head"><div><div class="sc-title">My Orders</div><div class="sc-sub">Track all your purchases · Edit or cancel within 5 hours</div></div></div><div id="b-orders-list"></div></div>
+        </div>
+        <div id="b-messages" class="tc">
+          <div class="sc" style="padding:0;overflow:hidden">
+            <div class="chat-shell">
+              <div class="chat-sidebar">
+                <div class="chat-sidebar-head">💬 Conversations</div>
+                <div id="b-chat-threads"></div>
+              </div>
+              <div class="chat-main">
+                <div class="chat-topbar" id="b-chat-topbar">
+                  <div class="chat-topbar-inner" style="display:none" id="b-chat-topbar-content">
+                    <div class="chat-ava" id="b-chat-ava">S</div>
+                    <div><div class="chat-with-name" id="b-chat-with-name">Seller</div><div class="chat-with-sub" id="b-chat-with-sub">Merchant</div></div>
+                  </div>
+                  <div id="b-chat-empty-top" style="font-size:13px;color:var(--text-muted);padding:16px 20px">Select a conversation</div>
+                </div>
+                <div class="chat-body" id="b-chat-body">
+                  <div class="chat-no-sel"><div style="font-size:40px;margin-bottom:12px">💬</div><div style="font-weight:700;color:var(--text-mid);margin-bottom:6px">Your Messages</div><div style="font-size:12px;color:var(--text-muted)">Select a seller conversation or start one from an order</div></div>
+                </div>
+                <div class="chat-input-bar" id="b-chat-input-bar" style="display:none">
+                  <input class="chat-input" id="b-chat-msg" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendMsg('buyer')">
+                  <button class="chat-send" onclick="sendMsg('buyer')">➤</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="b-feed" class="tc"><div class="sc"><div class="es"><div class="es-icon">📰</div><h4>Community Feed</h4><p>Platform updates and announcements. Coming soon.</p></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SELLER PORTAL -->
+<div id="seller-portal">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="sb-logo"><span style="font-size:18px">🛒</span><div class="sb-logo-text">FaithTrade</div></div>
+      <nav class="sb-nav">
+        <button class="ni on" onclick="sNav('home',this)"><span class="ic">🏠</span><span>Home</span></button>
+        <button class="ni" onclick="sNav('products',this)"><span class="ic">📦</span><span>My Products</span></button>
+        <button class="ni" onclick="sNav('orders',this)"><span class="ic">🧾</span><span>Orders</span></button>
+        <button class="ni" onclick="sNav('messages',this)"><span class="ic">💬</span><span>Messages</span></button>
+        <button class="ni" onclick="sNav('feed',this)"><span class="ic">📰</span><span>Community Feed</span></button>
+      </nav>
+      <div class="sb-user">
+        <div class="ava" id="s-ava">S</div>
+        <div class="sb-uinfo"><div class="sb-uname" id="s-uname">Seller</div><div class="sb-urole">Merchant Account</div></div>
+        <button class="sb-logout" onclick="logout()">🚪</button>
+      </div>
+    </aside>
+    <div class="pmain">
+      <div class="ptop">
+        <div class="ptop-title"><span id="s-ticon">🏠</span>&nbsp;<span id="s-ttitle">Home</span></div>
+        <button class="add-btn" onclick="openAddProd()">➕ ADD</button>
+      </div>
+      <div class="pcontent">
+        <div id="s-home" class="tc on">
+          <div class="hero">
+            <svg viewBox="0 0 900 190" xmlns="http://www.w3.org/2000/svg" class="wave" preserveAspectRatio="xMidYMid slice">
+              <path d="M0,95 C200,35 400,155 700,95 C800,65 850,115 900,95 L900,190 L0,190 Z" fill="rgba(255,255,255,0.07)"/>
+              <circle cx="800" cy="48" r="90" fill="rgba(255,255,255,0.05)"/>
+            </svg>
+            <div class="hero-content"><h2>Merchant Dashboard 🏪</h2><p>Welcome, <span id="s-hname">Seller</span> — here's your store overview</p></div>
+          </div>
+          <div class="sr">
+            <div class="st"><div class="st-icon">💰</div><div class="st-label">Revenue</div><div class="st-val" id="s-rev">$0</div></div>
+            <div class="st"><div class="st-icon">🧾</div><div class="st-label">Orders</div><div class="st-val" id="s-ords">0</div></div>
+            <div class="st"><div class="st-icon">📦</div><div class="st-label">Listings</div><div class="st-val" id="s-lists">0</div></div>
+            <div class="st"><div class="st-icon">⭐</div><div class="st-label">Rating</div><div class="st-val">4.9</div></div>
+          </div>
+          <div class="sc"><div class="sc-head"><div><div class="sc-title">Recent Orders</div><div class="sc-sub">Latest from buyers</div></div></div><div id="s-recent"></div></div>
+        </div>
+        <div id="s-products" class="tc">
+          <div class="sc"><div class="sc-head"><div><div class="sc-title">My Products</div><div class="sc-sub">All your marketplace listings</div></div><button class="add-btn" onclick="openAddProd()">➕ ADD</button></div><div id="s-prod-list"></div></div>
+        </div>
+        <div id="s-orders" class="tc">
+          <div class="sc"><div class="sc-head"><div><div class="sc-title">Order Management</div><div class="sc-sub">View and update buyer orders</div></div></div><div id="s-ord-list"></div></div>
+        </div>
+        <div id="s-messages" class="tc">
+          <div class="sc" style="padding:0;overflow:hidden">
+            <div class="chat-shell">
+              <div class="chat-sidebar">
+                <div class="chat-sidebar-head">💬 Conversations</div>
+                <div id="s-chat-threads"></div>
+              </div>
+              <div class="chat-main">
+                <div class="chat-topbar" id="s-chat-topbar">
+                  <div class="chat-topbar-inner" style="display:none" id="s-chat-topbar-content">
+                    <div class="chat-ava" id="s-chat-ava">B</div>
+                    <div><div class="chat-with-name" id="s-chat-with-name">Buyer</div><div class="chat-with-sub" id="s-chat-with-sub">Customer</div></div>
+                  </div>
+                  <div id="s-chat-empty-top" style="font-size:13px;color:var(--text-muted);padding:16px 20px">Select a conversation</div>
+                </div>
+                <div class="chat-body" id="s-chat-body">
+                  <div class="chat-no-sel"><div style="font-size:40px;margin-bottom:12px">💬</div><div style="font-weight:700;color:var(--text-mid);margin-bottom:6px">Your Messages</div><div style="font-size:12px;color:var(--text-muted)">Select a buyer conversation to reply</div></div>
+                </div>
+                <div class="chat-input-bar" id="s-chat-input-bar" style="display:none">
+                  <input class="chat-input" id="s-chat-msg" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendMsg('seller')">
+                  <button class="chat-send" onclick="sendMsg('seller')">➤</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="s-feed" class="tc"><div class="sc"><div class="es"><div class="es-icon">📰</div><h4>Community Feed</h4><p>Platform announcements. Coming soon.</p></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PORTAL -->
+<div id="admin-portal">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="sb-logo"><span style="font-size:18px">🛒</span><div class="sb-logo-text">FaithTrade</div></div>
+      <nav class="sb-nav">
+        <button class="ni on" onclick="aNav('overview',this)"><span class="ic">📊</span><span>Overview</span></button>
+        <button class="ni" onclick="aNav('orders',this)"><span class="ic">🧾</span><span>All Orders</span></button>
+        <button class="ni" onclick="aNav('products',this)"><span class="ic">📦</span><span>Products</span></button>
+        <button class="ni" onclick="aNav('buyers',this)"><span class="ic">🛍️</span><span>Buyers</span></button>
+        <button class="ni" onclick="aNav('sellers',this)"><span class="ic">🏪</span><span>Sellers</span></button>
+      </nav>
+      <div class="sb-user">
+        <div class="ava" style="background:linear-gradient(135deg,var(--teal-darker),var(--teal-dark))">👑</div>
+        <div class="sb-uinfo"><div class="sb-uname">Admin</div><div class="sb-urole">Superadmin</div></div>
+        <button class="sb-logout" onclick="logout()">🚪</button>
+      </div>
+    </aside>
+    <div class="pmain">
+      <div class="ptop" style="background:var(--teal-darker);border-color:rgba(255,255,255,0.08)">
+        <div class="ptop-title" style="color:white"><span id="a-ticon">📊</span>&nbsp;<span id="a-ttitle" style="color:white">Overview</span></div>
+        <span style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.45);font-weight:700">🔐 RESTRICTED ACCESS</span>
+      </div>
+      <div class="pcontent">
+        <div id="a-overview" class="tc on">
+          <div class="hero">
+            <svg viewBox="0 0 900 190" xmlns="http://www.w3.org/2000/svg" class="wave" preserveAspectRatio="xMidYMid slice">
+              <path d="M0,95 C200,35 400,155 700,95 C800,65 850,115 900,95 L900,190 L0,190 Z" fill="rgba(255,255,255,0.07)"/>
+            </svg>
+            <div class="hero-content"><h2>Admin Command Center 👑</h2><p>Complete visibility across all platform activity</p></div>
+          </div>
+          <div class="sr">
+            <div class="st"><div class="st-icon">💰</div><div class="st-label">Platform Revenue</div><div class="st-val" id="a-rev">$0</div></div>
+            <div class="st"><div class="st-icon">🧾</div><div class="st-label">Total Orders</div><div class="st-val" id="a-ords">0</div></div>
+            <div class="st"><div class="st-icon">🛍️</div><div class="st-label">Buyers</div><div class="st-val" id="a-buys">0</div></div>
+            <div class="st"><div class="st-icon">🏪</div><div class="st-label">Sellers</div><div class="st-val" id="a-sels">0</div></div>
+          </div>
+          <div class="sc"><div class="sc-head"><div class="sc-title">Latest Orders</div></div><div id="a-latest"></div></div>
+        </div>
+        <div id="a-orders" class="tc">
+          <div class="sc"><div class="sc-head"><div><div class="sc-title">All Orders</div><div class="sc-sub">Full buyer details, shipping &amp; payment info</div></div></div>
+          <div style="overflow-x:auto"><table class="ft-table"><thead><tr><th>Order ID</th><th>Buyer Name</th><th>Email</th><th>Phone</th><th>Product</th><th>Qty</th><th>Amount</th><th>Country</th><th>Address</th><th>Payment</th><th>Seller</th><th>Date</th><th>Status</th></tr></thead><tbody id="a-ord-tbody"><tr><td colspan="13"><div class="es"><div class="es-icon">🧾</div><h4>No orders yet</h4></div></td></tr></tbody></table></div></div>
+        </div>
+        <div id="a-products" class="tc">
+          <div class="sc"><div class="sc-head"><div class="sc-title">All Products</div></div><div id="a-prod-list"></div></div>
+        </div>
+        <div id="a-buyers" class="tc">
+          <div class="sc"><div class="sc-head"><div class="sc-title">All Buyers</div></div><div id="a-buy-list"></div></div>
+        </div>
+        <div id="a-sellers" class="tc">
+          <div class="sc"><div class="sc-head"><div class="sc-title">All Sellers</div></div><div id="a-sel-list"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="moverlay" id="cart-modal">
+  <div class="mbox">
+    <button class="mclose" onclick="closeCart()">✕</button>
+    <div class="mtitle">🛒 Your Cart</div>
+    <div class="msub">Review before checkout</div>
+    <div id="cart-items"></div>
+    <div class="ctotal"><span>Total</span><span class="ctotal-amt" id="cart-total">$0.00</span></div>
+    <button class="sbtn" onclick="openCheckout()">Proceed to Checkout →</button>
+    <button class="cbtn" onclick="closeCart()">Continue Shopping</button>
+  </div>
+</div>
+
+<div class="moverlay" id="checkout-modal">
+  <div class="mbox">
+    <button class="mclose" onclick="closeCheckout()">✕</button>
+    <div class="mtitle">📋 Checkout</div>
+    <div class="msub">Enter your shipping details to complete the order</div>
+    <div class="fg"><label class="flbl">Full Name</label><input class="finp" id="co-name" placeholder="John Doe"></div>
+    <div class="frow">
+      <div class="fg"><label class="flbl">Email</label><input class="finp" id="co-email" type="email" placeholder="john@email.com"></div>
+      <div class="fg"><label class="flbl">Phone</label><input class="finp" id="co-phone" placeholder="+233 XX XXX XXXX"></div>
+    </div>
+    <div class="fg"><label class="flbl">Shipping Address</label><input class="finp" id="co-addr" placeholder="Street address, apartment..."></div>
+    <div class="frow">
+      <div class="fg"><label class="flbl">City</label><input class="finp" id="co-city" placeholder="Accra"></div>
+      <div class="fg"><label class="flbl">Country</label>
+        <select class="finp" id="co-country"><option>Ghana</option><option>Nigeria</option><option>Kenya</option><option>South Africa</option><option>United States</option><option>United Kingdom</option><option>Germany</option><option>France</option><option>Canada</option><option>India</option><option>UAE</option><option>Other</option></select>
+      </div>
+    </div>
+    <div class="fg"><label class="flbl">Payment Method</label>
+      <select class="finp" id="co-pay"><option>Mobile Money (MoMo)</option><option>Credit / Debit Card</option><option>Bank Transfer</option><option>PayPal</option><option>Crypto (USDT)</option></select>
+    </div>
+    <button class="sbtn" onclick="placeOrder()">Place Order →</button>
+    <button class="cbtn" onclick="closeCheckout()">← Back to Cart</button>
+  </div>
+</div>
+
+<!-- ADD PRODUCT MODAL -->
+<div class="moverlay" id="ap-modal">
+  <div class="mbox">
+    <button class="mclose" onclick="closeAddProd()">✕</button>
+    <div class="mtitle" id="ap-modal-title">📦 Add Product</div>
+    <div class="msub" id="ap-modal-sub">List a new product on FaithTrade</div>
+
+    <!-- Image Upload -->
+    <div class="fg">
+      <label class="flbl">Product Image</label>
+      <div class="img-upload-box" id="ap-img-box" onclick="document.getElementById('ap-img-input').click()">
+        <img id="ap-img-preview" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:10px;">
+        <div id="ap-img-placeholder">
+          <div style="font-size:32px;margin-bottom:8px">🖼️</div>
+          <div style="font-size:13px;font-weight:700;color:var(--teal-dark)">Click to upload image</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px">JPG, PNG, WEBP · Max 5MB</div>
+        </div>
+      </div>
+      <input type="file" id="ap-img-input" accept="image/*" style="display:none" onchange="handleImgUpload(this)">
+    </div>
+
+    <div class="fg"><label class="flbl">Product Name</label><input class="finp" id="ap-name" placeholder="e.g. Hand-woven Kente Cloth"></div>
+    <div class="frow">
+      <div class="fg"><label class="flbl">Category</label>
+        <select class="finp" id="ap-cat"><option value="crafts">Crafts &amp; Art</option><option value="fashion">Fashion</option><option value="food">Food &amp; Agro</option><option value="electronics">Electronics</option><option value="health">Health &amp; Beauty</option></select>
+      </div>
+      <div class="fg"><label class="flbl">Price (USD)</label><input class="finp" id="ap-price" type="number" placeholder="0.00"></div>
+    </div>
+    <div class="fg"><label class="flbl">Description</label><input class="finp" id="ap-desc" placeholder="Short product description"></div>
+    <div class="fg"><label class="flbl">Origin Country</label><input class="finp" id="ap-country" placeholder="e.g. Ghana"></div>
+    <button class="sbtn" id="ap-submit-btn" onclick="submitProduct()">List Product →</button>
+    <button class="cbtn" onclick="closeAddProd()">Cancel</button>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="moverlay" id="del-modal">
+  <div class="mbox" style="max-width:380px;text-align:center">
+    <div style="font-size:48px;margin-bottom:12px">🗑️</div>
+    <div class="mtitle" style="text-align:center">Delete Product?</div>
+    <p style="font-size:13px;color:var(--text-muted);margin:8px 0 24px">This will permanently remove <strong id="del-prod-name"></strong> from your listings. This cannot be undone.</p>
+    <button class="sbtn" style="background:#C0392B;margin-bottom:8px" onclick="confirmDelete()">Yes, Delete</button>
+    <button class="cbtn" onclick="closeDelModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- EDIT ORDER MODAL -->
+<div class="moverlay" id="edit-order-modal">
+  <div class="mbox" style="max-width:400px">
+    <button class="mclose" onclick="closeEditOrder()">✕</button>
+    <div class="mtitle">✏️ Edit Order</div>
+    <div class="msub" id="edit-order-sub">Update quantity for your order</div>
+    <div style="background:var(--teal-soft);border-radius:12px;padding:14px 16px;margin-bottom:20px;display:flex;align-items:center;gap:12px">
+      <div id="edit-order-img" style="width:48px;height:48px;border-radius:8px;overflow:hidden;flex-shrink:0;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:22px"></div>
+      <div><div id="edit-order-name" style="font-weight:800;font-size:14px;color:var(--text)"></div><div id="edit-order-price-info" style="font-size:12px;color:var(--text-muted);margin-top:2px"></div></div>
+    </div>
+    <div class="fg">
+      <label class="flbl">Quantity</label>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button onclick="adjQty(-1)" style="width:36px;height:36px;border-radius:50%;border:1.5px solid var(--border-mid);background:var(--white);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--teal-dark)">−</button>
+        <input class="finp" id="edit-order-qty" type="number" min="1" max="99" value="1" style="text-align:center;width:80px" oninput="updateEditTotal()">
+        <button onclick="adjQty(1)" style="width:36px;height:36px;border-radius:50%;border:1.5px solid var(--border-mid);background:var(--white);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--teal-dark)">+</button>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 18px;padding:12px 16px;background:var(--bg);border-radius:10px">
+      <span style="font-size:13px;color:var(--text-muted);font-weight:600">New Total</span>
+      <span style="font-size:20px;font-weight:800;color:var(--teal-dark)" id="edit-order-new-total">$0.00</span>
+    </div>
+    <button class="sbtn" onclick="saveOrderEdit()">Save Changes →</button>
+    <button class="cbtn" onclick="closeEditOrder()">Cancel</button>
+  </div>
+</div>
+
+<!-- CANCEL ORDER MODAL -->
+<div class="moverlay" id="cancel-order-modal">
+  <div class="mbox" style="max-width:380px;text-align:center">
+    <div style="font-size:48px;margin-bottom:12px">❌</div>
+    <div class="mtitle" style="text-align:center">Cancel Order?</div>
+    <p style="font-size:13px;color:var(--text-muted);margin:8px 0 4px">You are about to cancel order <strong id="cancel-order-id"></strong>.</p>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:24px">Once cancelled, this action cannot be undone.</p>
+    <button class="sbtn" style="background:#C0392B;margin-bottom:8px" onclick="confirmCancelOrder()">Yes, Cancel Order</button>
+    <button class="cbtn" onclick="closeCancelOrder()">Keep Order</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+//  FAITHTRADE — SUPABASE INTEGRATION
+//  faithtrade-supabase.js
+// ============================================================
+
+// ---- CONFIG ----
+const SUPA_URL = 'https://bfvrayjrfrgufszvpxqj.supabase.co';
+const SUPA_KEY = 'sb_publishable_I0w4Y-gV8EJ7ET6O6AGrrg_7RYe3xog';
+const { createClient } = supabase;
+const sb = createClient(SUPA_URL, SUPA_KEY);
+
+// ---- LOCAL STATE ----
+let DB = { currentUser: null, cart: [], products: [] };
+let activeCat = 'all', searchQ = '', activeChatThread = null;
+let editingProductId = null, currentImgData = null;
+let editingOrderId = null, cancelingOrderId = null, deletingProductId = null;
+
+// ============================================================
+//  MAPPERS  (Supabase row → app object)
+// ============================================================
+function mapProduct(r) {
+  return {
+    id: r.id, name: r.name, emoji: r.emoji || '📦',
+    image: r.image || null, price: parseFloat(r.price),
+    category: r.category, country: r.country,
+    desc: r.description, seller: r.seller, sellerId: r.seller_id
+  };
+}
+function mapOrder(r) {
+  return {
+    id: r.id, buyerId: r.buyer_id, buyerName: r.buyer_name,
+    buyerEmail: r.buyer_email, buyerPhone: r.buyer_phone,
+    buyerAddress: r.buyer_address, buyerCountry: r.buyer_country,
+    payment: r.payment, sellerId: r.seller_id, sellerName: r.seller_name,
+    productId: r.product_id, productName: r.product_name,
+    productEmoji: r.product_emoji || '📦',
+    qty: r.qty, unitPrice: parseFloat(r.unit_price),
+    amount: parseFloat(r.amount), status: r.status,
+    date: r.date, placedAt: r.placed_at
+  };
+}
+function mapUser(r) {
+  return {
+    id: r.id, role: r.role, name: r.name, email: r.email,
+    password: r.password, country: r.country, currency: r.currency,
+    category: r.category, joined: r.joined
+  };
+}
+
+// ============================================================
+//  UTILITIES
+// ============================================================
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show';
+  el.style.borderLeftColor = type === 'e' ? '#C0392B' : 'var(--teal-light)';
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+function showLoading(id, msg = 'Loading...') {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = `<div class="es"><div class="es-icon">⏳</div><h4>${msg}</h4></div>`;
+}
+
+function prodImg(p, size) {
+  if (p && p.image) {
+    return `<img src="${p.image}" alt="${p.name}" style="width:100%;height:${size}px;object-fit:cover;">`;
+  }
+  return `<div style="width:100%;height:${size}px;background:linear-gradient(135deg,#E8F5F3,#C8E8E4);display:flex;align-items:center;justify-content:center;font-size:${size > 80 ? 48 : 22}px">${(p && p.emoji) || '📦'}</div>`;
+}
+
+function orderTimeLeft(o) {
+  if (!o.placedAt) return { ok: false, label: 'Expired' };
+  const left = (5 * 60 * 60 * 1000) - (Date.now() - o.placedAt);
+  if (left <= 0) return { ok: false, label: 'Window closed' };
+  return { ok: true, label: `${Math.floor(left / 3600000)}h ${Math.floor((left % 3600000) / 60000)}m left` };
+}
+
+// ============================================================
+//  AUTH FLOW
+// ============================================================
+function goAuth(role) {
+  document.getElementById('role-select').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+  renderAuth(role, false);
+  const titles = {
+    buyer:  ['Shop Globally,<br>Trade Faithfully', "Join thousands of buyers and sellers on FaithTrade's trusted international marketplace."],
+    seller: ['Grow Your<br>Business Globally', 'List products, manage orders and reach buyers worldwide on FaithTrade.'],
+    admin:  ['Admin<br>Command Center', 'Restricted access — authorised personnel only. Full platform visibility and control.']
+  };
+  const t = titles[role];
+  document.getElementById('ar-title').innerHTML = t[0];
+  document.getElementById('ar-desc').textContent = t[1];
+}
+
+function renderAuth(role, isReg) {
+  const box = document.getElementById('auth-box');
+  let extra = '';
+  if (isReg && role === 'buyer') {
+    extra = `<label class="lbl">Country</label>
+      <select class="inp" id="r-country"><option>Ghana</option><option>Nigeria</option><option>Kenya</option><option>South Africa</option><option>United States</option><option>United Kingdom</option><option>Germany</option><option>Canada</option><option>India</option><option>Other</option></select>
+      <label class="lbl">Currency</label>
+      <select class="inp" id="r-cur"><option>USD</option><option>EUR</option><option>GBP</option><option>GHS</option><option>NGN</option><option>KES</option></select>`;
+  }
+  if (isReg && role === 'seller') {
+    extra = `<label class="lbl">Country of Operation</label>
+      <select class="inp" id="r-country"><option>Ghana</option><option>Nigeria</option><option>Kenya</option><option>South Africa</option><option>Morocco</option><option>United States</option><option>United Kingdom</option><option>Germany</option><option>India</option><option>China</option></select>
+      <label class="lbl">Business Category</label>
+      <select class="inp" id="r-cat"><option>General Merchandise</option><option>Fashion &amp; Apparel</option><option>Food &amp; Agriculture</option><option>Crafts &amp; Art</option><option>Electronics</option><option>Health &amp; Beauty</option></select>`;
+  }
+  const adminBadge = role === 'admin'
+    ? `<div style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:100px;background:rgba(23,79,68,0.08);border:1.5px solid rgba(23,79,68,0.2);color:var(--teal-darker);font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;margin-bottom:20px">🔐 Restricted Access</div><br>` : '';
+
+  box.innerHTML = `
+    ${adminBadge}
+    <div class="auth-title">${isReg ? 'Create Account' : 'Welcome Back!'}</div>
+    <div class="auth-sub">${isReg ? 'Join FaithTrade as a ' + role.charAt(0).toUpperCase() + role.slice(1) : 'Log Into Your Account'}</div>
+    ${isReg ? `<label class="lbl">${role === 'seller' ? 'Business Name' : 'Full Name'}</label><input class="inp" id="r-name" placeholder="Enter ${role === 'seller' ? 'business name' : 'full name'}...">` : ''}
+    <label class="lbl">Email</label><input class="inp" id="a-email" type="email" placeholder="Enter email...">
+    <label class="lbl">Password</label><input class="inp" id="a-pass" type="password" placeholder="Enter password...">
+    ${extra}
+    <button class="auth-btn-main" onclick="doAuth('${role}',${isReg})">${isReg ? 'SIGN UP' : 'LOGIN'}</button>
+    ${role !== 'admin' ? `<span class="auth-forgot">FORGOT YOUR PASSWORD?</span>
+      <div class="auth-sw">${isReg
+        ? `Already have an account? <a onclick="renderAuth('${role}',false)">SIGN IN</a>`
+        : `Don't Have An Account? <a onclick="renderAuth('${role}',true)">SIGN UP</a>`
+      }</div>
+      <div class="auth-sw" style="margin-top:16px"><a onclick="backHome()">← Back to Home</a></div>` : ''}
+  `;
+}
+
+function backHome() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('role-select').style.display = 'flex';
+  history.replaceState(null, '', window.location.pathname + window.location.search);
+}
+
+async function doAuth(role, isReg) {
+  const email = document.getElementById('a-email')?.value?.trim();
+  const pass  = document.getElementById('a-pass')?.value?.trim();
+  if (!email || !pass) { toast('Please fill all fields', 'e'); return; }
+
+  if (role === 'admin') {
+    const { data, error } = await sb.from('users').select('*').eq('role','admin').eq('email', email).eq('password', pass).single();
+    if (error || !data) { toast('Invalid admin credentials', 'e'); return; }
+    DB.currentUser = mapUser(data);
+    showPortal('admin');
+    return;
+  }
+
+  if (isReg) {
+    const { data: existing } = await sb.from('users').select('id').eq('email', email).eq('role', role);
+    if (existing && existing.length > 0) { toast('Email already registered for this role', 'e'); return; }
+    const name    = document.getElementById('r-name')?.value?.trim() || email.split('@')[0];
+    const country = document.getElementById('r-country')?.value || 'Ghana';
+    const newUser = {
+      id: 'U' + Date.now(), role, email, password: pass, name, country,
+      joined:   new Date().toLocaleDateString('en-GB'),
+      currency: role === 'buyer'  ? (document.getElementById('r-cur')?.value  || 'USD') : null,
+      category: role === 'seller' ? (document.getElementById('r-cat')?.value  || 'General') : null
+    };
+    const { error } = await sb.from('users').insert([newUser]);
+    if (error) { toast('Registration failed: ' + error.message, 'e'); return; }
+    DB.currentUser = newUser;
+    toast('Welcome to FaithTrade, ' + name + '! 🎉');
+    showPortal(role);
+  } else {
+    const { data, error } = await sb.from('users').select('*').eq('email', email).eq('password', pass).eq('role', role).single();
+    if (error || !data) { toast('Invalid credentials', 'e'); return; }
+    DB.currentUser = mapUser(data);
+    toast('Welcome back, ' + DB.currentUser.name + '!');
+    showPortal(role);
+  }
+}
+
+async function showPortal(role) {
+  ['role-select','auth-screen','buyer-portal','seller-portal','admin-portal']
+    .forEach(id => document.getElementById(id).style.display = 'none');
+  document.getElementById(role + '-portal').style.display = 'block';
+
+  const { data: prods } = await sb.from('products').select('*');
+  DB.products = (prods || []).map(mapProduct);
+
+  if (role === 'buyer')  await initBuyer();
+  if (role === 'seller') await initSeller();
+  if (role === 'admin')  await initAdmin();
+}
+
+async function logout() {
+  DB.currentUser = null; DB.cart = []; updCart();
+  ['buyer-portal','seller-portal','admin-portal'].forEach(id => document.getElementById(id).style.display = 'none');
+  document.getElementById('role-select').style.display = 'flex';
+  toast('Signed out');
+}
+
+// ============================================================
+//  BUYER
+// ============================================================
+async function initBuyer() {
+  const u = DB.currentUser;
+  document.getElementById('b-ava').textContent   = u.name[0].toUpperCase();
+  document.getElementById('b-uname').textContent = u.name;
+  document.getElementById('b-hname').textContent = u.name;
+  renderHomePg(); renderBrowsePg(); updCart();
+}
+
+function bNav(page, btn) {
+  document.querySelectorAll('#buyer-portal .ni').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  ['home','browse','orders','messages','feed'].forEach(p => {
+    const e = document.getElementById('b-' + p); if (e) e.classList.remove('on');
+  });
+  document.getElementById('b-' + page)?.classList.add('on');
+  const ic = { home:'🏠', browse:'🔍', orders:'📦', messages:'💬', feed:'📰' };
+  const tt = { home:'Home', browse:'Browse Library', orders:'My Orders', messages:'Messages', feed:'Community Feed' };
+  document.getElementById('b-ticon').textContent  = ic[page];
+  document.getElementById('b-ttitle').textContent = tt[page];
+  if (page === 'orders')   renderBuyerOrders();
+  if (page === 'messages') renderBuyerChatThreads();
+}
+
+function renderHomePg() {
+  document.getElementById('home-pg').innerHTML = DB.products.slice(0, 6).map(ptHTML).join('');
+}
+
+function ptHTML(p) {
+  return `<div class="pt">
+    <div class="pt-img" style="height:140px;overflow:hidden">${prodImg(p, 140)}</div>
+    <div class="pt-body">
+      <div class="pt-country">📍 ${p.country}</div>
+      <div class="pt-name">${p.name}</div>
+      <div class="pt-seller">by ${p.seller}</div>
+      <div class="pt-foot">
+        <div class="pt-price">$${p.price.toFixed(2)}</div>
+        <button class="atc" onclick="addToCart('${p.id}')">ADD</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderBrowsePg() {
+  let ps = DB.products;
+  if (activeCat !== 'all') ps = ps.filter(p => p.category === activeCat);
+  if (searchQ) ps = ps.filter(p =>
+    p.name.toLowerCase().includes(searchQ) || (p.desc || '').toLowerCase().includes(searchQ)
+  );
+  const g = document.getElementById('browse-pg');
+  g.innerHTML = ps.length
+    ? ps.map(ptHTML).join('')
+    : '<div class="es"><div class="es-icon">🔍</div><h4>No products found</h4><p>Try a different search or filter.</p></div>';
+}
+
+function fCat(cat, btn) {
+  activeCat = cat;
+  document.querySelectorAll('.chip').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  renderBrowsePg();
+}
+
+function searchProd(q) { searchQ = q.toLowerCase(); renderBrowsePg(); }
+
+// ---- CART ----
+function addToCart(id) {
+  const p = DB.products.find(p => p.id === id); if (!p) return;
+  const ex = DB.cart.find(c => c.id === id);
+  ex ? ex.qty++ : DB.cart.push({ ...p, qty: 1 });
+  updCart(); toast(p.name + ' added ✓');
+}
+
+function updCart() {
+  const el = document.getElementById('cart-count');
+  if (el) el.textContent = DB.cart.reduce((s, c) => s + c.qty, 0);
+}
+
+function openCart() {
+  const items = document.getElementById('cart-items');
+  if (!DB.cart.length) {
+    items.innerHTML = '<div class="es"><div class="es-icon">🛒</div><h4>Cart is empty</h4><p>Add products from the marketplace.</p></div>';
+    document.getElementById('cart-total').textContent = '$0.00';
+  } else {
+    items.innerHTML = DB.cart.map(c =>
+      `<div class="ci">
+        <div class="ci-thumb" style="overflow:hidden">${prodImg(c, 46)}</div>
+        <div><div class="ci-name">${c.name}</div><div class="ci-price">$${c.price.toFixed(2)} × ${c.qty}</div></div>
+        <button class="ci-rm" onclick="rmCart('${c.id}')">✕</button>
+      </div>`
+    ).join('');
+    document.getElementById('cart-total').textContent =
+      '$' + DB.cart.reduce((s, c) => s + c.price * c.qty, 0).toFixed(2);
+  }
+  document.getElementById('cart-modal').classList.add('open');
+}
+
+function closeCart() { document.getElementById('cart-modal').classList.remove('open'); }
+function rmCart(id) { DB.cart = DB.cart.filter(c => c.id !== id); updCart(); openCart(); }
+
+function openCheckout() {
+  if (!DB.cart.length) { toast('Cart is empty', 'e'); return; }
+  closeCart();
+  const u = DB.currentUser;
+  document.getElementById('co-name').value  = u?.name  || '';
+  document.getElementById('co-email').value = u?.email || '';
+  document.getElementById('checkout-modal').classList.add('open');
+}
+function closeCheckout() { document.getElementById('checkout-modal').classList.remove('open'); }
+
+async function placeOrder() {
+  const g   = id => document.getElementById(id).value.trim();
+  const name    = g('co-name'), email = g('co-email');
+  const phone   = document.getElementById('co-phone').value.trim() || 'N/A';
+  const addr    = g('co-addr'), city  = g('co-city');
+  const country = document.getElementById('co-country').value;
+  const pay     = document.getElementById('co-pay').value;
+  if (!name || !email || !addr || !city) { toast('Please fill all shipping details', 'e'); return; }
+
+  const now = Date.now();
+  const newOrders = DB.cart.map(item => ({
+    id: 'FT-' + String(now + Math.random()).replace('.','').slice(-8),
+    buyer_id: DB.currentUser.id, buyer_name: name, buyer_email: email,
+    buyer_phone: phone, buyer_address: addr + ', ' + city, buyer_country: country,
+    payment: pay, seller_id: item.sellerId || null, seller_name: item.seller,
+    product_id: item.id, product_name: item.name, product_emoji: item.emoji || '📦',
+    qty: item.qty, unit_price: item.price, amount: item.price * item.qty,
+    status: 'pending', date: new Date().toLocaleDateString('en-GB'), placed_at: now
+  }));
+
+  const { error } = await sb.from('orders').insert(newOrders);
+  if (error) { toast('Order failed: ' + error.message, 'e'); return; }
+
+  DB.cart = []; updCart(); closeCheckout();
+  toast('Order placed successfully! 🎉');
+  bNav('orders', document.querySelectorAll('#buyer-portal .ni')[2]);
+}
+
+// ---- BUYER ORDERS ----
+async function renderBuyerOrders() {
+  showLoading('b-orders-list', 'Loading orders...');
+  const { data, error } = await sb.from('orders').select('*')
+    .eq('buyer_id', DB.currentUser.id).order('placed_at', { ascending: false });
+  if (error) { toast('Failed to load orders', 'e'); return; }
+  const list = document.getElementById('b-orders-list');
+  if (!data || !data.length) {
+    list.innerHTML = '<div class="es"><div class="es-icon">📦</div><h4>No orders yet</h4><p>Browse and place your first order.</p></div>';
+    return;
+  }
+  const orders = data.map(mapOrder);
+  list.innerHTML = orders.map(o => {
+    const p  = DB.products.find(x => x.id === o.productId);
+    const tw = orderTimeLeft(o);
+    const canAct    = o.status === 'pending' && tw.ok;
+    const isCancelled = o.status === 'cancelled';
+    const timerHtml = o.status === 'pending'
+      ? `<span class="timer-tag ${tw.ok ? '' : 'expired'}">⏱ ${tw.label}</span>` : '';
+    const actBtns = canAct
+      ? `<button class="oact-btn oact-edit"   onclick="openEditOrder('${o.id}')">✏️ Edit</button>
+         <button class="oact-btn oact-cancel" onclick="openCancelOrder('${o.id}')">✕ Cancel</button>`
+      : (o.status === 'pending' && !tw.ok ? '<span class="timer-tag expired">Window closed</span>' : '');
+    const msgBtn = !isCancelled
+      ? `<button class="oact-btn oact-msg" onclick="openChatWithSeller('${o.sellerId || ''}','${o.sellerName}')">💬 Message</button>` : '';
+    return `<div class="lr" style="flex-wrap:wrap;gap:10px;align-items:flex-start;padding:14px 10px">
+      <div class="lthumb" style="overflow:hidden;flex-shrink:0">${p ? prodImg(p,46) : `<span style="font-size:20px">${o.productEmoji}</span>`}</div>
+      <div class="linfo" style="min-width:180px">
+        <div class="ltitle">${o.productName}</div>
+        <div class="lsub">${o.id} · ${o.date} · from ${o.sellerName}</div>
+        <div class="lsub" style="margin-top:2px">Qty: ${o.qty} · ${timerHtml}</div>
+      </div>
+      <span class="bdg ${o.status}">${o.status.charAt(0).toUpperCase() + o.status.slice(1)}</span>
+      <div class="lprice">$${o.amount.toFixed(2)}</div>
+      <div class="order-actions">${actBtns}${msgBtn}</div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+//  SELLER
+// ============================================================
+async function initSeller() {
+  const u = DB.currentUser;
+  document.getElementById('s-ava').textContent   = u.name[0].toUpperCase();
+  document.getElementById('s-uname').textContent = u.name;
+  document.getElementById('s-hname').textContent = u.name;
+  await refreshSellerDash();
+}
+
+function sNav(page, btn) {
+  document.querySelectorAll('#seller-portal .ni').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  ['home','products','orders','messages','feed'].forEach(p => {
+    const e = document.getElementById('s-' + p); if (e) e.classList.remove('on');
+  });
+  document.getElementById('s-' + page)?.classList.add('on');
+  const ic = { home:'🏠', products:'📦', orders:'🧾', messages:'💬', feed:'📰' };
+  const tt = { home:'Home', products:'My Products', orders:'Orders', messages:'Messages', feed:'Community Feed' };
+  document.getElementById('s-ticon').textContent  = ic[page];
+  document.getElementById('s-ttitle').textContent = tt[page];
+  if (page === 'home')     refreshSellerDash();
+  if (page === 'products') renderSellerProds();
+  if (page === 'orders')   renderSellerOrds();
+  if (page === 'messages') renderSellerChatThreads();
+}
+
+async function refreshSellerDash() {
+  const u = DB.currentUser;
+  const { data: myOrders } = await sb.from('orders').select('*').eq('seller_id', u.id);
+  const myO    = (myOrders || []).map(mapOrder);
+  const myProds = DB.products.filter(p => p.sellerId === u.id);
+  document.getElementById('s-rev').textContent   = '$' + myO.reduce((s,o) => s + o.amount, 0).toFixed(2);
+  document.getElementById('s-ords').textContent  = myO.length;
+  document.getElementById('s-lists').textContent = myProds.length;
+  const el = document.getElementById('s-recent');
+  if (!myO.length) {
+    el.innerHTML = '<div class="es"><div class="es-icon">📭</div><h4>No orders yet</h4><p>Buyers will appear here once they purchase.</p></div>';
+    return;
+  }
+  el.innerHTML = myO.slice(0, 5).map(o => {
+    const p = DB.products.find(x => x.id === o.productId);
+    return `<div class="lr">
+      <div class="lthumb" style="overflow:hidden">${p ? prodImg(p,46) : `<span style="font-size:20px">📦</span>`}</div>
+      <div class="linfo"><div class="ltitle">${o.buyerName} — ${o.productName}</div><div class="lsub">${o.id} · ${o.date} · ${o.buyerCountry}</div></div>
+      <span class="bdg ${o.status}">${o.status.charAt(0).toUpperCase() + o.status.slice(1)}</span>
+      <div class="lprice">$${o.amount.toFixed(2)}</div><div class="larrow">›</div>
+    </div>`;
+  }).join('');
+}
+
+function sellerProdRowHTML(p) {
+  return `<div class="lr">
+    <div class="lthumb" style="overflow:hidden">${prodImg(p, 46)}</div>
+    <div class="linfo"><div class="ltitle">${p.name}</div><div class="lsub">${p.desc || ''} · ${p.country}</div></div>
+    <span class="bdg live">Live</span>
+    <div class="lprice">$${p.price.toFixed(2)}</div>
+    <div class="prod-actions">
+      <button class="edit-btn" onclick="openEditProd('${p.id}')">✏️ Edit</button>
+      <button class="del-btn"  onclick="openDelModal('${p.id}')">🗑️ Delete</button>
+    </div>
+  </div>`;
+}
+
+function renderSellerProds() {
+  const pr = DB.products.filter(p => p.sellerId === DB.currentUser.id);
+  const el = document.getElementById('s-prod-list');
+  el.innerHTML = pr.length
+    ? pr.map(sellerProdRowHTML).join('')
+    : '<div class="es"><div class="es-icon">📦</div><h4>No products yet</h4><p>Add your first product to start selling.</p></div>';
+}
+
+async function renderSellerOrds() {
+  showLoading('s-ord-list', 'Loading orders...');
+  const { data } = await sb.from('orders').select('*')
+    .eq('seller_id', DB.currentUser.id).order('placed_at', { ascending: false });
+  const my = (data || []).map(mapOrder);
+  const el = document.getElementById('s-ord-list');
+  if (!my.length) { el.innerHTML = '<div class="es"><div class="es-icon">📭</div><h4>No orders yet</h4></div>'; return; }
+  el.innerHTML = my.map(o => `
+    <div class="lr">
+      <div class="lthumb">${o.productEmoji}</div>
+      <div class="linfo">
+        <div class="ltitle">${o.buyerName} ordered ${o.productName} ×${o.qty}</div>
+        <div class="lsub">${o.id} · ${o.date} · Ships to ${o.buyerCountry}</div>
+      </div>
+      <select style="padding:6px 10px;border:1.5px solid var(--border-mid);border-radius:8px;font-family:Nunito,sans-serif;font-size:11px;font-weight:700;color:var(--teal-dark);cursor:pointer;outline:none;background:white;"
+        onchange="updStatus('${o.id}',this.value)">
+        <option ${o.status==='pending'?'selected':''} value="pending">Pending</option>
+        <option ${o.status==='processing'?'selected':''} value="processing">Processing</option>
+        <option ${o.status==='shipped'?'selected':''} value="shipped">Shipped</option>
+        <option ${o.status==='delivered'?'selected':''} value="delivered">Delivered</option>
+      </select>
+      <div class="lprice">$${o.amount.toFixed(2)}</div>
+    </div>`).join('');
+}
+
+async function updStatus(id, status) {
+  const { error } = await sb.from('orders').update({ status }).eq('id', id);
+  if (error) { toast('Update failed', 'e'); return; }
+  toast('Order ' + id + ' → ' + status);
+}
+
+// ---- ADD / EDIT / DELETE PRODUCT ----
+function openAddProd() {
+  editingProductId = null; currentImgData = null;
+  document.getElementById('ap-modal-title').textContent   = '📦 Add Product';
+  document.getElementById('ap-modal-sub').textContent     = 'List a new product on FaithTrade';
+  document.getElementById('ap-submit-btn').textContent    = 'List Product →';
+  ['ap-name','ap-price','ap-desc','ap-country'].forEach(id => {
+    const e = document.getElementById(id); if (e) e.value = '';
+  });
+  document.getElementById('ap-cat').selectedIndex = 0;
+  resetImgUpload();
+  document.getElementById('ap-modal').classList.add('open');
+}
+
+function openEditProd(id) {
+  const p = DB.products.find(p => p.id === id); if (!p) return;
+  editingProductId = id; currentImgData = p.image || null;
+  document.getElementById('ap-modal-title').textContent   = '✏️ Edit Product';
+  document.getElementById('ap-modal-sub').textContent     = 'Update your product details';
+  document.getElementById('ap-submit-btn').textContent    = 'Save Changes →';
+  document.getElementById('ap-name').value    = p.name;
+  document.getElementById('ap-price').value   = p.price;
+  document.getElementById('ap-desc').value    = p.desc || '';
+  document.getElementById('ap-country').value = p.country;
+  document.getElementById('ap-cat').value     = p.category;
+  if (p.image) {
+    document.getElementById('ap-img-preview').src          = p.image;
+    document.getElementById('ap-img-preview').style.display = 'block';
+    document.getElementById('ap-img-placeholder').style.display = 'none';
+    document.getElementById('ap-img-box').classList.add('has-img');
+  } else { resetImgUpload(); }
+  document.getElementById('ap-modal').classList.add('open');
+}
+
+function closeAddProd() {
+  document.getElementById('ap-modal').classList.remove('open');
+  editingProductId = null; currentImgData = null;
+}
+
+function resetImgUpload() {
+  document.getElementById('ap-img-preview').src            = '';
+  document.getElementById('ap-img-preview').style.display  = 'none';
+  document.getElementById('ap-img-placeholder').style.display = 'flex';
+  document.getElementById('ap-img-box').classList.remove('has-img');
+  document.getElementById('ap-img-input').value = '';
+  currentImgData = null;
+}
+
+function handleImgUpload(input) {
+  const file = input.files[0]; if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { toast('Image too large — max 5MB', 'e'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    currentImgData = e.target.result;
+    document.getElementById('ap-img-preview').src           = currentImgData;
+    document.getElementById('ap-img-preview').style.display  = 'block';
+    document.getElementById('ap-img-placeholder').style.display = 'none';
+    document.getElementById('ap-img-box').classList.add('has-img');
+  };
+  reader.readAsDataURL(file);
+}
+
+async function submitProduct() {
+  const g       = id => document.getElementById(id).value.trim();
+  const name    = g('ap-name');
+  const cat     = document.getElementById('ap-cat').value;
+  const price   = parseFloat(document.getElementById('ap-price').value);
+  const desc    = g('ap-desc');
+  const country = g('ap-country');
+  if (!name || !price || !desc || !country) { toast('Fill all product fields', 'e'); return; }
+  const u = DB.currentUser;
+
+  if (editingProductId) {
+    const updates = { name, category: cat, price, description: desc, country };
+    if (currentImgData) updates.image = currentImgData;
+    const { error } = await sb.from('products').update(updates).eq('id', editingProductId);
+    if (error) { toast('Update failed: ' + error.message, 'e'); return; }
+    const p = DB.products.find(p => p.id === editingProductId);
+    if (p) { p.name = name; p.category = cat; p.price = price; p.desc = desc; p.country = country; if (currentImgData) p.image = currentImgData; }
+    toast(name + ' updated! ✓');
+  } else {
+    const newProd = {
+      id: 'P' + Date.now(), name, image: currentImgData || null,
+      emoji: '📦', price, category: cat, country,
+      description: desc, seller: u.name, seller_id: u.id
+    };
+    const { error } = await sb.from('products').insert([newProd]);
+    if (error) { toast('Failed to list product: ' + error.message, 'e'); return; }
+    DB.products.push(mapProduct(newProd));
+    toast(name + ' listed! ✓');
+  }
+  closeAddProd();
+  renderSellerProds(); renderHomePg(); renderBrowsePg();
+}
+
+function openDelModal(id) {
+  deletingProductId = id;
+  const p = DB.products.find(p => p.id === id);
+  document.getElementById('del-prod-name').textContent = p ? p.name : 'this product';
+  document.getElementById('del-modal').classList.add('open');
+}
+function closeDelModal() { document.getElementById('del-modal').classList.remove('open'); deletingProductId = null; }
+
+async function confirmDelete() {
+  if (!deletingProductId) return;
+  const p = DB.products.find(p => p.id === deletingProductId);
+  const { error } = await sb.from('products').delete().eq('id', deletingProductId);
+  if (error) { toast('Delete failed: ' + error.message, 'e'); return; }
+  DB.products = DB.products.filter(p => p.id !== deletingProductId);
+  closeDelModal(); renderSellerProds(); renderHomePg(); renderBrowsePg(); refreshSellerDash();
+  toast((p ? p.name : 'Product') + ' deleted');
+}
+
+// ---- ORDER EDIT / CANCEL ----
+async function openEditOrder(id) {
+  const { data } = await sb.from('orders').select('*').eq('id', id).single();
+  if (!data) return;
+  const o  = mapOrder(data);
+  const tw = orderTimeLeft(o);
+  if (!tw.ok) { toast('Edit window has closed (5-hour limit)', 'e'); return; }
+  editingOrderId = id;
+  const p = DB.products.find(x => x.id === o.productId);
+  document.getElementById('edit-order-sub').textContent        = 'Change quantity · ' + tw.label + ' remaining';
+  document.getElementById('edit-order-name').textContent       = o.productName;
+  document.getElementById('edit-order-price-info').textContent = '$' + o.unitPrice.toFixed(2) + ' each';
+  document.getElementById('edit-order-img').innerHTML          = p ? prodImg(p, 48) : `<span style="font-size:22px">${o.productEmoji}</span>`;
+  document.getElementById('edit-order-qty').value              = o.qty;
+  document.getElementById('edit-order-new-total').textContent  = '$' + o.amount.toFixed(2);
+  document.getElementById('edit-order-modal').classList.add('open');
+}
+
+function adjQty(delta) {
+  const el = document.getElementById('edit-order-qty');
+  el.value = Math.max(1, Math.min(99, (parseInt(el.value) || 1) + delta));
+  updateEditTotal();
+}
+
+async function updateEditTotal() {
+  if (!editingOrderId) return;
+  const { data } = await sb.from('orders').select('unit_price').eq('id', editingOrderId).single();
+  if (!data) return;
+  const qty = parseInt(document.getElementById('edit-order-qty').value) || 1;
+  document.getElementById('edit-order-new-total').textContent = '$' + (parseFloat(data.unit_price) * qty).toFixed(2);
+}
+
+async function saveOrderEdit() {
+  const { data } = await sb.from('orders').select('*').eq('id', editingOrderId).single();
+  if (!data) return;
+  const o  = mapOrder(data);
+  const tw = orderTimeLeft(o);
+  if (!tw.ok) { toast('Edit window has closed', 'e'); closeEditOrder(); return; }
+  const qty       = parseInt(document.getElementById('edit-order-qty').value) || 1;
+  const newAmount = o.unitPrice * qty;
+  const { error } = await sb.from('orders').update({ qty, amount: newAmount }).eq('id', editingOrderId);
+  if (error) { toast('Update failed', 'e'); return; }
+  closeEditOrder(); renderBuyerOrders(); toast('Order updated to qty ' + qty + ' ✓');
+}
+
+function closeEditOrder() { document.getElementById('edit-order-modal').classList.remove('open'); editingOrderId = null; }
+
+async function openCancelOrder(id) {
+  const { data } = await sb.from('orders').select('placed_at,status').eq('id', id).single();
+  if (!data) return;
+  const tw = orderTimeLeft({ placedAt: data.placed_at });
+  if (!tw.ok) { toast('Cancel window has closed (5-hour limit)', 'e'); return; }
+  cancelingOrderId = id;
+  document.getElementById('cancel-order-id').textContent = id;
+  document.getElementById('cancel-order-modal').classList.add('open');
+}
+function closeCancelOrder() { document.getElementById('cancel-order-modal').classList.remove('open'); cancelingOrderId = null; }
+
+async function confirmCancelOrder() {
+  const { error } = await sb.from('orders').update({ status: 'cancelled' }).eq('id', cancelingOrderId);
+  if (error) { toast('Cancel failed', 'e'); return; }
+  closeCancelOrder(); renderBuyerOrders(); toast('Order ' + cancelingOrderId + ' cancelled');
+}
+
+// ============================================================
+//  MESSAGING
+// ============================================================
+async function getOrCreateThread(buyerId, buyerName, sellerId, sellerName) {
+  const { data: existing } = await sb.from('threads').select('*').eq('buyer_id', buyerId).eq('seller_id', sellerId);
+  if (existing && existing.length > 0) return existing[0];
+  const newThread = { id: 'T' + Date.now(), buyer_id: buyerId, buyer_name: buyerName, seller_id: sellerId, seller_name: sellerName };
+  const { data } = await sb.from('threads').insert([newThread]).select().single();
+  return data;
+}
+
+async function openChatWithSeller(sellerId, sellerName) {
+  if (!sellerId) { toast('Seller info unavailable', 'e'); return; }
+  const u = DB.currentUser;
+  const t = await getOrCreateThread(u.id, u.name, sellerId, sellerName);
+  if (!t) { toast('Could not open chat', 'e'); return; }
+  activeChatThread = t.id;
+  bNav('messages', document.querySelectorAll('#buyer-portal .ni')[3]);
+  setTimeout(() => { renderBuyerChatThreads(); openThread('buyer', t.id); }, 150);
+}
+
+async function renderBuyerChatThreads() {
+  const { data: threads } = await sb.from('threads').select('*').eq('buyer_id', DB.currentUser.id);
+  const el = document.getElementById('b-chat-threads'); if (!el) return;
+  if (!threads || !threads.length) {
+    el.innerHTML = '<div class="chat-empty-threads">No conversations yet.<br>Message a seller from your orders.</div>';
+    return;
+  }
+  el.innerHTML = threads.map(t => `
+    <div class="chat-thread ${activeChatThread === t.id ? 'active' : ''}" onclick="openThread('buyer','${t.id}')">
+      <div class="chat-thread-ava">${t.seller_name[0].toUpperCase()}</div>
+      <div class="chat-thread-info">
+        <div class="chat-thread-name">${t.seller_name}</div>
+        <div class="chat-thread-preview">Tap to open conversation</div>
+      </div>
+    </div>`).join('');
+}
+
+async function renderSellerChatThreads() {
+  const { data: threads } = await sb.from('threads').select('*').eq('seller_id', DB.currentUser.id);
+  const el = document.getElementById('s-chat-threads'); if (!el) return;
+  if (!threads || !threads.length) {
+    el.innerHTML = '<div class="chat-empty-threads">No conversations yet.<br>Buyers can message you from their orders.</div>';
+    return;
+  }
+  el.innerHTML = threads.map(t => `
+    <div class="chat-thread ${activeChatThread === t.id ? 'active' : ''}" onclick="openThread('seller','${t.id}')">
+      <div class="chat-thread-ava">${t.buyer_name[0].toUpperCase()}</div>
+      <div class="chat-thread-info">
+        <div class="chat-thread-name">${t.buyer_name}</div>
+        <div class="chat-thread-preview">Tap to open conversation</div>
+      </div>
+    </div>`).join('');
+}
+
+async function openThread(role, threadId) {
+  activeChatThread = threadId;
+  const isB = role === 'buyer';
+  const { data: thread } = await sb.from('threads').select('*').eq('id', threadId).single();
+  if (!thread) return;
+  const pfx = isB ? 'b' : 's';
+  document.getElementById(pfx + '-chat-topbar-content').style.display = 'flex';
+  document.getElementById(pfx + '-chat-empty-top').style.display       = 'none';
+  document.getElementById(pfx + '-chat-input-bar').style.display       = 'flex';
+  const otherName = isB ? thread.seller_name : thread.buyer_name;
+  document.getElementById(pfx + '-chat-with-name').textContent = otherName;
+  document.getElementById(pfx + '-chat-with-sub').textContent  = isB ? 'Merchant' : 'Customer';
+  document.getElementById(pfx + '-chat-ava').textContent       = otherName[0].toUpperCase();
+  await renderChatMessages(role, threadId);
+  if (isB) renderBuyerChatThreads(); else renderSellerChatThreads();
+}
+
+async function renderChatMessages(role, threadId) {
+  const isB   = role === 'buyer';
+  const bodyEl = document.getElementById((isB ? 'b' : 's') + '-chat-body');
+  const { data: msgs } = await sb.from('messages').select('*').eq('thread_id', threadId).order('time', { ascending: true });
+  if (!msgs || !msgs.length) {
+    bodyEl.innerHTML = '<div class="chat-no-sel" style="margin:auto;text-align:center;color:var(--text-muted)"><div style="font-size:28px;margin-bottom:8px">👋</div><div style="font-size:12px">Say hello! Start the conversation.</div></div>';
+    return;
+  }
+  let lastDate = '';
+  bodyEl.innerHTML = msgs.map(m => {
+    const isOut = (isB && m.from_role === 'buyer') || (!isB && m.from_role === 'seller');
+    const d     = new Date(m.time).toLocaleDateString('en-GB');
+    const dateDivider = d !== lastDate ? `<div class="chat-date-divider">${d}</div>` : '';
+    lastDate = d;
+    const timeStr = new Date(m.time).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    return `${dateDivider}<div class="chat-msg ${isOut ? 'out' : 'in'}">${m.text}<div class="chat-msg-time">${timeStr}</div></div>`;
+  }).join('');
+  bodyEl.scrollTop = bodyEl.scrollHeight;
+}
+
+async function sendMsg(role) {
+  const isB  = role === 'buyer';
+  const inp  = document.getElementById((isB ? 'b' : 's') + '-chat-msg');
+  const text = inp.value.trim();
+  if (!text || !activeChatThread) return;
+  const { error } = await sb.from('messages').insert([{
+    thread_id: activeChatThread, from_role: isB ? 'buyer' : 'seller', text, time: Date.now()
+  }]);
+  if (error) { toast('Message failed', 'e'); return; }
+  inp.value = '';
+  await renderChatMessages(role, activeChatThread);
+}
+
+// ============================================================
+//  ADMIN
+// ============================================================
+async function initAdmin() { await refreshAdmin(); }
+
+function aNav(page, btn) {
+  document.querySelectorAll('#admin-portal .ni').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  ['overview','orders','products','buyers','sellers'].forEach(p => {
+    const e = document.getElementById('a-' + p); if (e) e.classList.remove('on');
+  });
+  document.getElementById('a-' + page)?.classList.add('on');
+  const ic = { overview:'📊', orders:'🧾', products:'📦', buyers:'🛍️', sellers:'🏪' };
+  const tt = { overview:'Overview', orders:'All Orders', products:'All Products', buyers:'All Buyers', sellers:'All Sellers' };
+  document.getElementById('a-ticon').textContent  = ic[page];
+  document.getElementById('a-ttitle').textContent = tt[page];
+  refreshAdmin();
+}
+
+async function refreshAdmin() {
+  const [{ data: allOrders }, { data: allUsers }, { data: allProds }] = await Promise.all([
+    sb.from('orders').select('*').order('placed_at', { ascending: false }),
+    sb.from('users').select('*'),
+    sb.from('products').select('*')
+  ]);
+  const orders  = (allOrders || []).map(mapOrder);
+  const users   = (allUsers  || []).map(mapUser);
+  const prods   = (allProds  || []).map(mapProduct);
+  const buyers  = users.filter(u => u.role === 'buyer');
+  const sellers = users.filter(u => u.role === 'seller');
+  const rev     = orders.reduce((s, o) => s + o.amount, 0);
+
+  const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+  set('a-rev',  '$' + rev.toFixed(2));
+  set('a-ords', orders.length);
+  set('a-buys', buyers.length);
+  set('a-sels', sellers.length);
+
+  const lat = document.getElementById('a-latest');
+  if (lat) lat.innerHTML = orders.length
+    ? orders.slice(0, 10).map(o =>
+        `<div class="lr"><div class="lthumb">${o.productEmoji}</div>
+         <div class="linfo"><div class="ltitle">${o.buyerName} → ${o.productName}</div>
+         <div class="lsub">${o.id} · ${o.sellerName} · ${o.buyerCountry} · ${o.date}</div></div>
+         <span class="bdg ${o.status}">${o.status.charAt(0).toUpperCase() + o.status.slice(1)}</span>
+         <div class="lprice">$${o.amount.toFixed(2)}</div><div class="larrow">›</div></div>`).join('')
+    : '<div class="es"><div class="es-icon">🧾</div><h4>No orders yet</h4></div>';
+
+  const tbody = document.getElementById('a-ord-tbody');
+  if (tbody) tbody.innerHTML = orders.length
+    ? orders.map(o =>
+        `<tr><td style="font-weight:700;color:var(--teal-dark)">${o.id}</td><td style="font-weight:700">${o.buyerName}</td>
+         <td>${o.buyerEmail}</td><td>${o.buyerPhone}</td><td>${o.productEmoji} ${o.productName}</td>
+         <td>${o.qty}</td><td style="font-weight:800;color:var(--teal-dark)">$${o.amount.toFixed(2)}</td>
+         <td>${o.buyerCountry}</td><td>${o.buyerAddress}</td><td>${o.payment}</td>
+         <td>${o.sellerName}</td><td>${o.date}</td>
+         <td><span class="bdg ${o.status}">${o.status.charAt(0).toUpperCase() + o.status.slice(1)}</span></td></tr>`).join('')
+    : `<tr><td colspan="13"><div class="es"><div class="es-icon">🧾</div><h4>No orders yet</h4></div></td></tr>`;
+
+  const apl = document.getElementById('a-prod-list');
+  if (apl) apl.innerHTML = prods.length
+    ? prods.map(p =>
+        `<div class="lr"><div class="lthumb">${p.emoji}</div>
+         <div class="linfo"><div class="ltitle">${p.name}</div><div class="lsub">${p.seller} · ${p.category} · ${p.country}</div></div>
+         <span class="bdg live">${p.category}</span><div class="lprice">$${p.price.toFixed(2)}</div><div class="larrow">›</div></div>`).join('')
+    : '<div class="es"><div class="es-icon">📦</div><h4>No products yet</h4></div>';
+
+  const abl = document.getElementById('a-buy-list');
+  if (abl) abl.innerHTML = buyers.length
+    ? buyers.map(b => {
+        const os = orders.filter(o => o.buyerId === b.id);
+        return `<div class="lr"><div class="lthumb" style="font-weight:800;font-size:16px;color:var(--teal-dark)">${b.name[0]}</div>
+          <div class="linfo"><div class="ltitle">${b.name}</div><div class="lsub">${b.email} · ${b.country||'N/A'} · Joined ${b.joined||'N/A'}</div></div>
+          <span class="bdg live">${os.length} orders</span>
+          <div class="lprice">$${os.reduce((s,o)=>s+o.amount,0).toFixed(2)}</div><div class="larrow">›</div></div>`;
+      }).join('')
+    : '<div class="es"><div class="es-icon">🛍️</div><h4>No buyers yet</h4></div>';
+
+  const asl = document.getElementById('a-sel-list');
+  if (asl) asl.innerHTML = sellers.length
+    ? sellers.map(s => {
+        const ps  = prods.filter(p => p.sellerId === s.id).length;
+        const os  = orders.filter(o => o.sellerId === s.id);
+        return `<div class="lr"><div class="lthumb" style="font-weight:800;font-size:16px;color:var(--teal-dark)">${s.name[0]}</div>
+          <div class="linfo"><div class="ltitle">${s.name}</div><div class="lsub">${s.email} · ${s.country||'N/A'} · ${s.category||'General'} · Joined ${s.joined||'N/A'}</div></div>
+          <span class="bdg live">${ps} products</span>
+          <div class="lprice">$${os.reduce((sum,o)=>sum+o.amount,0).toFixed(2)}</div><div class="larrow">›</div></div>`;
+      }).join('')
+    : '<div class="es"><div class="es-icon">🏪</div><h4>No sellers yet</h4></div>';
+}
+
+// ---- ADMIN HASH ROUTE ----
+if (window.location.hash === '#admin') {
+  document.getElementById('role-select').style.display = 'none';
+  goAuth('admin');
+}
+window.addEventListener('hashchange', function () {
+  if (window.location.hash === '#admin' && !DB.currentUser) {
+    ['buyer-portal','seller-portal','admin-portal'].forEach(id => document.getElementById(id).style.display = 'none');
+    document.getElementById('role-select').style.display = 'none';
+    goAuth('admin');
+  }
+});
+
+</script>
+</body>
+</html>
