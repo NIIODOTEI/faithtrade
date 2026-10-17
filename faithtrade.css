@@ -867,7 +867,8 @@ body {
    ============================================= */
 .toast {
   position: fixed;
-  bottom: 24px; right: 24px;
+  top: 20px; right: 24px;
+  bottom: auto;
   background: var(--teal-darker);
   color: white;
   padding: 13px 20px;
@@ -875,14 +876,37 @@ body {
   font-size: 13px;
   font-weight: 600;
   z-index: 9999;
-  transform: translateY(80px);
+  transform: translateY(-80px);
   opacity: 0;
   transition: all .3s ease;
   border-left: 4px solid var(--teal-light);
   box-shadow: var(--shadow-lg);
-  min-width: 240px;
+  min-width: 260px;
+  max-width: 360px;
 }
 .toast.show { transform: translateY(0); opacity: 1; }
+
+/* OTP code toast — larger, more prominent */
+.toast.otp {
+  background: var(--teal-darker);
+  border-left: 4px solid #FFD700;
+  padding: 16px 22px;
+  min-width: 300px;
+}
+.toast.otp .toast-code {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 8px;
+  color: #FFD700;
+  display: block;
+  margin-top: 6px;
+}
+.toast.otp .toast-timer {
+  font-size: 11px;
+  color: rgba(255,255,255,0.6);
+  display: block;
+  margin-top: 4px;
+}
 
 /* =============================================
    TAB CONTENT ANIMATION
@@ -910,3 +934,22 @@ body {
   .pmain { margin-left: 56px; }
   .sr { grid-template-columns: 1fr 1fr; }
 }
+
+/* =============================================
+   PAYMENT METHOD SELECTOR
+   ============================================= */
+.pay-opt {
+  border: 1.5px solid var(--border-mid);
+  border-radius: var(--r);
+  padding: 12px;
+  cursor: pointer;
+  transition: all .2s;
+  text-align: center;
+  background: var(--white);
+}
+.pay-opt:hover { border-color: var(--teal); background: var(--teal-soft); }
+.pay-opt.on { border-color: var(--teal); background: var(--teal-soft); box-shadow: 0 0 0 2px rgba(46,139,122,0.15); }
+.pay-icon { font-size: 26px; margin-bottom: 5px; }
+.pay-label { font-size: 12px; font-weight: 800; color: var(--text); }
+.pay-sub { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+.pay-details { animation: fu .2s ease; }
