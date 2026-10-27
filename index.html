@@ -2836,9 +2836,8 @@ async function refreshAdmin() {
   const abl = document.getElementById('a-buy-list');
   if (abl) abl.innerHTML = buyers.length
     ? buyers.map(b => {
-        const os  = orders.filter(o => o.buyerId === b.id);
-        const bid = b.id;
-        return '<div class="lr" onclick="openBuyerDetail(\'' + bid + '\')" style="cursor:pointer">'
+        const os = orders.filter(o => o.buyerId === b.id);
+        return '<div class="lr" onclick="openBuyerDetail(\'' + b.id + '\')" style="cursor:pointer">'
           + '<div class="lthumb" style="font-weight:800;font-size:16px;color:var(--teal-dark)">' + b.name[0] + '</div>'
           + '<div class="linfo"><div class="ltitle">' + b.name + '</div>'
           + '<div class="lsub">' + b.email + ' · ' + (b.phone||'N/A') + ' · ' + (b.country||'N/A') + ' · Joined ' + (b.joined||'N/A') + '</div></div>'
@@ -2908,6 +2907,599 @@ window.addEventListener('hashchange', function () {
     goAuth('admin');
   }
 });
+
+// ============================================================
+//  FORGOT PASSWORD
+// ============================================================
+async function sendResetCode() {
+  const email = document.getElementById('forgot-email')?.value?.trim();
+  if (!email) { toast('Please enter your email address', 'e'); return; }
+  const { data, error } = await sb.from('users').select('id,name,email').eq('email', email);
+  if (error || !data || !data.length) { toast('No account found with that email', 'e'); return; }
+  const user  = data[0];
+  const otp   = generateOTP();
+  const exp   = Date.now() + 10 * 60 * 1000;
+  await sb.from('users').update({ otp, otp_expires: exp }).eq('id', user.id);
+  const sent = await sendOTPEmail(email, otp, user.name);
+  if (!sent) toast(otp + ': Reset code (check email or use this)', 'otp');
+  else toast('Reset code sent to ' + email + ' — also: ' + otp, 'otp');
+  document.getElementById('forgot-otp-section').style.display = 'block';
+  document.getElementById('forgot-email').dataset.userId = user.id;
+}
+
+async function confirmResetPassword() {
+  const otp     = document.getElementById('forgot-otp-inp')?.value?.trim();
+  const newPass = document.getElementById('forgot-new-pass')?.value?.trim();
+  const userId  = document.getElementById('forgot-email')?.dataset?.userId;
+  if (!otp || otp.length !== 6) { toast('Enter the 6-digit code', 'e'); return; }
+  if (!newPass || newPass.length < 6) { toast('Password must be at least 6 characters', 'e'); return; }
+  if (!userId) { toast('Session expired — try again', 'e'); return; }
+  const { data } = await sb.from('users').select('otp,otp_expires').eq('id', userId).single();
+  if (!data) { toast('User not found', 'e'); return; }
+  if (Date.now() > data.otp_expires) { toast('Code expired — request a new one', 'e'); return; }
+  if (otp !== data.otp) { toast('Incorrect code', 'e'); return; }
+  const { error } = await sb.from('users').update({ password: newPass, otp: null, otp_expires: null }).eq('id', userId);
+  if (error) { toast('Reset failed: ' + error.message, 'e'); return; }
+  document.getElementById('forgot-modal').classList.remove('open');
+  document.getElementById('forgot-otp-section').style.display = 'none';
+  document.getElementById('forgot-otp-inp').value = '';
+  document.getElementById('forgot-new-pass').value = '';
+  toast('Password reset successfully! Please log in ✓');
+}
+
+// ============================================================
+//  LISTING TYPE TOGGLE (Product vs Service)
+// ============================================================
+function switchListingType(type) {
+  const typeEl = document.getElementById('ap-type');
+  if (typeEl) typeEl.value = type;
+  const prodBtn = document.getElementById('type-product-btn');
+  const svcBtn  = document.getElementById('type-service-btn');
+  if (prodBtn) { prodBtn.classList.toggle('on', type === 'product'); }
+  if (svcBtn)  { svcBtn.classList.toggle('on', type === 'service'); }
+  const prodFields = document.getElementById('ap-product-fields');
+  const svcFields  = document.getElementById('ap-service-fields');
+  const detSection = document.getElementById('ap-details-section');
+  if (prodFields) prodFields.style.display = type === 'product' ? 'block' : 'none';
+  if (svcFields)  svcFields.style.display  = type === 'service' ? 'block' : 'none';
+  if (detSection) detSection.style.display = type === 'product' ? 'block' : 'none';
+  const nameLabel  = document.getElementById('ap-name-lbl');
+  const priceLabel = document.getElementById('ap-price-label');
+  const submitBtn  = document.getElementById('ap-submit-btn');
+  const modalTitle = document.getElementById('ap-modal-title');
+  const modalSub   = document.getElementById('ap-modal-sub');
+  const isEditing  = document.getElementById('ap-type')?.dataset?.editing;
+  if (type === 'service') {
+    if (nameLabel)  nameLabel.textContent  = 'Service Name';
+    if (priceLabel) priceLabel.textContent = 'Price (GHS)';
+    if (submitBtn)  submitBtn.textContent  = 'List Service →';
+    if (modalTitle && !isEditing) modalTitle.textContent = '🛠️ Add Service';
+    if (modalSub)   modalSub.textContent   = 'Offer your skill or service on FaithTrade';
+  } else {
+    if (nameLabel)  nameLabel.textContent  = 'Product Name';
+    if (priceLabel) priceLabel.textContent = 'Price (GHS)';
+    if (submitBtn)  submitBtn.textContent  = 'List Product →';
+    if (modalTitle && !isEditing) modalTitle.textContent = '➕ New Listing';
+    if (modalSub)   modalSub.textContent   = 'Add a product or service to FaithTrade';
+  }
+}
+
+// ============================================================
+//  IMAGE TAB SWITCH (Upload vs URL)
+// ============================================================
+function switchImgTab(tab) {
+  const uploadPanel = document.getElementById('img-panel-upload');
+  const urlPanel    = document.getElementById('img-panel-url');
+  const uploadBtn   = document.getElementById('img-tab-upload');
+  const urlBtn      = document.getElementById('img-tab-url');
+  if (!uploadPanel) return;
+  if (tab === 'url') {
+    uploadPanel.style.display  = 'none';
+    urlPanel.style.display     = 'block';
+    if (uploadBtn) { uploadBtn.style.background='white'; uploadBtn.style.color='var(--text-muted)'; uploadBtn.style.borderColor='var(--border-mid)'; }
+    if (urlBtn)    { urlBtn.style.background='var(--teal)'; urlBtn.style.color='white'; urlBtn.style.borderColor='var(--teal)'; }
+  } else {
+    uploadPanel.style.display  = 'block';
+    urlPanel.style.display     = 'none';
+    if (urlBtn)    { urlBtn.style.background='white'; urlBtn.style.color='var(--text-muted)'; urlBtn.style.borderColor='var(--border-mid)'; }
+    if (uploadBtn) { uploadBtn.style.background='var(--teal)'; uploadBtn.style.color='white'; uploadBtn.style.borderColor='var(--teal)'; }
+  }
+}
+
+function previewImgUrl(url) {
+  const preview = document.getElementById('ap-url-preview');
+  const img     = document.getElementById('ap-url-img');
+  const errorEl = document.getElementById('ap-url-error');
+  if (!url || !url.startsWith('http')) { if (preview) preview.style.display = 'none'; return; }
+  img.onload  = () => {
+    if (preview) preview.style.display = 'block';
+    if (errorEl) errorEl.style.display = 'none';
+    currentImgData = url;
+  };
+  img.onerror = () => {
+    if (preview) preview.style.display = 'none';
+    if (errorEl) errorEl.style.display = 'block';
+    currentImgData = null;
+  };
+  img.src = url;
+}
+
+// ============================================================
+//  ADMIN GLOBAL SEARCH
+// ============================================================
+function adminSearch(q) {
+  q = (q || '').toLowerCase().trim();
+  if (!q) { refreshAdmin(); return; }
+  const results = [
+    ..._allOrders.filter(o =>
+      (o.id||'').toLowerCase().includes(q) ||
+      (o.buyerName||'').toLowerCase().includes(q) ||
+      (o.productName||'').toLowerCase().includes(q) ||
+      (o.sellerName||'').toLowerCase().includes(q)
+    ).map(o => ({ type:'order', data:o })),
+    ..._allUsers.filter(u =>
+      (u.name||'').toLowerCase().includes(q) ||
+      (u.email||'').toLowerCase().includes(q) ||
+      (u.phone||'').includes(q)
+    ).map(u => ({ type:'user', data:u })),
+    ..._allProds.filter(p =>
+      (p.name||'').toLowerCase().includes(q) ||
+      (p.seller||'').toLowerCase().includes(q) ||
+      (p.category||'').toLowerCase().includes(q)
+    ).map(p => ({ type:'product', data:p })),
+  ];
+  ['overview','orders','products','buyers','sellers','messages','feed','promotions','settings']
+    .forEach(p => { const e = document.getElementById('a-'+p); if(e) e.classList.remove('on'); });
+  document.getElementById('a-overview')?.classList.add('on');
+  document.getElementById('a-ticon').textContent  = '🔍';
+  document.getElementById('a-ttitle').textContent = 'Search Results (' + results.length + ')';
+  const lat = document.getElementById('a-latest');
+  if (!lat) return;
+  if (!results.length) { lat.innerHTML = '<div class="es"><div class="es-icon">🔍</div><h4>No results for "' + q + '"</h4></div>'; return; }
+  lat.innerHTML = results.map(r => {
+    if (r.type === 'order') {
+      const o = r.data;
+      return `<div class="lr"><div class="lthumb">${o.productEmoji||'📦'}</div>
+        <div class="linfo"><div class="ltitle">🧾 ${o.buyerName} → ${o.productName}</div>
+        <div class="lsub">${o.id} · ${o.date} · GHS ${o.amount.toFixed(2)}</div></div>
+        <span class="bdg ${o.status}">${o.status}</span></div>`;
+    }
+    if (r.type === 'user') {
+      const u = r.data;
+      return `<div class="lr"><div class="lthumb" style="font-weight:800;font-size:15px;color:var(--teal-dark)">${(u.name||'?')[0]}</div>
+        <div class="linfo"><div class="ltitle">${u.role==='buyer'?'🛍️':'🏪'} ${u.name}</div>
+        <div class="lsub">${u.email} · ${u.phone||'N/A'}</div></div>
+        <span class="bdg live">${u.role}</span></div>`;
+    }
+    if (r.type === 'product') {
+      const p = r.data;
+      return `<div class="lr"><div class="lthumb">${p.emoji||'📦'}</div>
+        <div class="linfo"><div class="ltitle">📦 ${p.name}</div>
+        <div class="lsub">${p.seller} · ${p.category}</div></div>
+        <div class="lprice">GHS ${p.price.toFixed(2)}</div></div>`;
+    }
+    return '';
+  }).join('');
+}
+
+// ============================================================
+//  ADMIN MESSAGES
+// ============================================================
+async function loadAdminMessages() {
+  const el = document.getElementById('a-msg-list');
+  if (!el) return;
+  el.innerHTML = '<div class="es"><div class="es-icon">⏳</div><h4>Loading...</h4></div>';
+  try {
+    const { data: threads } = await sb.from('threads').select('*');
+    if (!threads || !threads.length) {
+      el.innerHTML = '<div class="es"><div class="es-icon">💬</div><h4>No conversations yet</h4></div>'; return;
+    }
+    const { data: msgs } = await sb.from('messages').select('thread_id');
+    const counts = {};
+    (msgs||[]).forEach(m => { counts[m.thread_id] = (counts[m.thread_id]||0) + 1; });
+    el.innerHTML = threads.map(t => `
+      <div class="lr" onclick="openAdminThread('${t.id}')" style="cursor:pointer">
+        <div class="lthumb" style="font-size:22px">💬</div>
+        <div class="linfo">
+          <div class="ltitle">${t.buyer_name} ↔ ${t.seller_name}</div>
+          <div class="lsub">Thread: ${t.id} · ${counts[t.id]||0} messages</div>
+        </div>
+        <span class="bdg live">${counts[t.id]||0} msgs</span>
+        <div class="larrow">›</div>
+      </div>`).join('');
+  } catch(e) { el.innerHTML = '<div class="es"><div class="es-icon">❌</div><h4>Error loading messages</h4></div>'; }
+}
+
+async function openAdminThread(threadId) {
+  try {
+    const { data: msgs }   = await sb.from('messages').select('*').eq('thread_id', threadId).order('time', { ascending: true });
+    const { data: thread } = await sb.from('threads').select('*').eq('id', threadId).single();
+    if (!thread) return;
+    document.getElementById('admin-thread-modal').classList.add('open');
+    document.getElementById('atm-title').textContent = thread.buyer_name + ' ↔ ' + thread.seller_name;
+    const body = document.getElementById('atm-body');
+    if (!msgs || !msgs.length) {
+      body.innerHTML = '<div class="es"><div class="es-icon">💬</div><h4>No messages</h4></div>'; return;
+    }
+    body.innerHTML = msgs.map(m => {
+      const isB = m.from_role === 'buyer';
+      const time = new Date(m.time).toLocaleString('en-GB');
+      return `<div style="margin-bottom:12px;padding:10px 14px;border-radius:10px;background:${isB?'var(--teal-soft)':'#f0f0f0'}">
+        <div style="font-size:10px;font-weight:700;color:var(--text-muted);margin-bottom:4px">
+          ${isB?'🛍️ '+thread.buyer_name:'🏪 '+thread.seller_name} · ${time}
+        </div>
+        <div style="font-size:13px;color:var(--text)">${m.text}</div>
+      </div>`;
+    }).join('');
+  } catch(e) { toast('Error opening thread: ' + e.message, 'e'); }
+}
+
+// ============================================================
+//  ADMIN SETTINGS — SAVE FUNCTIONS
+// ============================================================
+async function loadAdminSettings() {
+  try {
+    const { data } = await sb.from('settings').select('*');
+    if (!data) return;
+    const map = {};
+    data.forEach(r => map[r.key] = r.value);
+    const set = (id, val) => { const e = document.getElementById(id); if (e && val) e.value = val; };
+    set('s-bank-name', map.bank_name);
+    set('s-acc-name',  map.bank_acc_name);
+    set('s-acc-num',   map.bank_acc_num);
+    set('s-branch',    map.bank_branch);
+    set('s-momo-network', map.momo_network);
+    set('s-momo-number',  map.momo_number);
+    set('s-momo-name',    map.momo_name);
+    set('s-platform-name',  map.platform_name);
+    set('s-support-email',  map.support_email);
+    set('s-currency',       map.currency);
+    set('s-edit-window',    map.edit_window_hours);
+    if (map.commission_pct) {
+      currentCommission = parseFloat(map.commission_pct) || 5;
+      const inp = document.getElementById('commission-input');
+      if (inp) inp.value = currentCommission;
+      previewCommission();
+    }
+  } catch(e) { console.error('Settings load error:', e); }
+}
+
+async function saveBankDetails() {
+  const g = id => document.getElementById(id)?.value?.trim() || '';
+  const bank = g('s-bank-name'), accName = g('s-acc-name'), accNum = g('s-acc-num'), branch = g('s-branch');
+  if (!bank || !accName || !accNum) { toast('Fill all bank fields', 'e'); return; }
+  const { error } = await sb.from('settings').upsert([
+    { key:'bank_name',     value:bank    },
+    { key:'bank_acc_name', value:accName },
+    { key:'bank_acc_num',  value:accNum  },
+    { key:'bank_branch',   value:branch  },
+  ]);
+  if (error) { toast('Save failed: ' + error.message, 'e'); return; }
+  toast('Bank details saved ✓');
+}
+
+async function saveMomoDetails() {
+  const net  = document.getElementById('s-momo-network')?.value || '';
+  const num  = document.getElementById('s-momo-number')?.value?.trim() || '';
+  const name = document.getElementById('s-momo-name')?.value?.trim() || '';
+  if (!num) { toast('Enter MoMo number', 'e'); return; }
+  const { error } = await sb.from('settings').upsert([
+    { key:'momo_network', value:net  },
+    { key:'momo_number',  value:num  },
+    { key:'momo_name',    value:name },
+  ]);
+  if (error) { toast('Save failed: ' + error.message, 'e'); return; }
+  toast('MoMo details saved ✓');
+}
+
+async function savePlatformSettings() {
+  const g = id => document.getElementById(id)?.value?.trim() || '';
+  const { error } = await sb.from('settings').upsert([
+    { key:'platform_name',      value: g('s-platform-name')  },
+    { key:'support_email',      value: g('s-support-email')  },
+    { key:'currency',           value: document.getElementById('s-currency')?.value || 'GHS' },
+    { key:'edit_window_hours',  value: g('s-edit-window')    },
+  ]);
+  if (error) { toast('Save failed: ' + error.message, 'e'); return; }
+  toast('Platform settings saved ✓');
+}
+
+====================================
+//  FORGOT PASSWORD
+// ============================================================
+async function sendResetCode() {
+  const email = document.getElementById('forgot-email')?.value?.trim();
+  if (!email) { toast('Please enter your email address', 'e'); return; }
+  const { data, error } = await sb.from('users').select('id,name,email').eq('email', email);
+  if (error || !data || !data.length) { toast('No account found with that email', 'e'); return; }
+  const user  = data[0];
+  const otp   = generateOTP();
+  const exp   = Date.now() + 10 * 60 * 1000;
+  await sb.from('users').update({ otp, otp_expires: exp }).eq('id', user.id);
+  const sent = await sendOTPEmail(email, otp, user.name);
+  if (!sent) toast(otp + ': Reset code (check email or use this)', 'otp');
+  else toast('Reset code sent to ' + email + ' — also: ' + otp, 'otp');
+  document.getElementById('forgot-otp-section').style.display = 'block';
+  document.getElementById('forgot-email').dataset.userId = user.id;
+}
+
+async function confirmResetPassword() {
+  const otp     = document.getElementById('forgot-otp-inp')?.value?.trim();
+  const newPass = document.getElementById('forgot-new-pass')?.value?.trim();
+  const userId  = document.getElementById('forgot-email')?.dataset?.userId;
+  if (!otp || otp.length !== 6) { toast('Enter the 6-digit code', 'e'); return; }
+  if (!newPass || newPass.length < 6) { toast('Password must be at least 6 characters', 'e'); return; }
+  if (!userId) { toast('Session expired — try again', 'e'); return; }
+  const { data } = await sb.from('users').select('otp,otp_expires').eq('id', userId).single();
+  if (!data) { toast('User not found', 'e'); return; }
+  if (Date.now() > data.otp_expires) { toast('Code expired — request a new one', 'e'); return; }
+  if (otp !== data.otp) { toast('Incorrect code', 'e'); return; }
+  const { error } = await sb.from('users').update({ password: newPass, otp: null, otp_expires: null }).eq('id', userId);
+  if (error) { toast('Reset failed: ' + error.message, 'e'); return; }
+  document.getElementById('forgot-modal').classList.remove('open');
+  document.getElementById('forgot-otp-section').style.display = 'none';
+  document.getElementById('forgot-otp-inp').value = '';
+  document.getElementById('forgot-new-pass').value = '';
+  toast('Password reset successfully! Please log in ✓');
+}
+
+// ============================================================
+//  LISTING TYPE TOGGLE (Product vs Service)
+// ============================================================
+function switchListingType(type) {
+  const typeEl = document.getElementById('ap-type');
+  if (typeEl) typeEl.value = type;
+  const prodBtn = document.getElementById('type-product-btn');
+  const svcBtn  = document.getElementById('type-service-btn');
+  if (prodBtn) { prodBtn.classList.toggle('on', type === 'product'); }
+  if (svcBtn)  { svcBtn.classList.toggle('on', type === 'service'); }
+  const prodFields = document.getElementById('ap-product-fields');
+  const svcFields  = document.getElementById('ap-service-fields');
+  const detSection = document.getElementById('ap-details-section');
+  if (prodFields) prodFields.style.display = type === 'product' ? 'block' : 'none';
+  if (svcFields)  svcFields.style.display  = type === 'service' ? 'block' : 'none';
+  if (detSection) detSection.style.display = type === 'product' ? 'block' : 'none';
+  const nameLabel  = document.getElementById('ap-name-lbl');
+  const priceLabel = document.getElementById('ap-price-label');
+  const submitBtn  = document.getElementById('ap-submit-btn');
+  const modalTitle = document.getElementById('ap-modal-title');
+  const modalSub   = document.getElementById('ap-modal-sub');
+  const isEditing  = document.getElementById('ap-type')?.dataset?.editing;
+  if (type === 'service') {
+    if (nameLabel)  nameLabel.textContent  = 'Service Name';
+    if (priceLabel) priceLabel.textContent = 'Price (GHS)';
+    if (submitBtn)  submitBtn.textContent  = 'List Service →';
+    if (modalTitle && !isEditing) modalTitle.textContent = '🛠️ Add Service';
+    if (modalSub)   modalSub.textContent   = 'Offer your skill or service on FaithTrade';
+  } else {
+    if (nameLabel)  nameLabel.textContent  = 'Product Name';
+    if (priceLabel) priceLabel.textContent = 'Price (GHS)';
+    if (submitBtn)  submitBtn.textContent  = 'List Product →';
+    if (modalTitle && !isEditing) modalTitle.textContent = '➕ New Listing';
+    if (modalSub)   modalSub.textContent   = 'Add a product or service to FaithTrade';
+  }
+}
+
+// ============================================================
+//  IMAGE TAB SWITCH (Upload vs URL)
+// ============================================================
+function switchImgTab(tab) {
+  const uploadPanel = document.getElementById('img-panel-upload');
+  const urlPanel    = document.getElementById('img-panel-url');
+  const uploadBtn   = document.getElementById('img-tab-upload');
+  const urlBtn      = document.getElementById('img-tab-url');
+  if (!uploadPanel) return;
+  if (tab === 'url') {
+    uploadPanel.style.display  = 'none';
+    urlPanel.style.display     = 'block';
+    if (uploadBtn) { uploadBtn.style.background='white'; uploadBtn.style.color='var(--text-muted)'; uploadBtn.style.borderColor='var(--border-mid)'; }
+    if (urlBtn)    { urlBtn.style.background='var(--teal)'; urlBtn.style.color='white'; urlBtn.style.borderColor='var(--teal)'; }
+  } else {
+    uploadPanel.style.display  = 'block';
+    urlPanel.style.display     = 'none';
+    if (urlBtn)    { urlBtn.style.background='white'; urlBtn.style.color='var(--text-muted)'; urlBtn.style.borderColor='var(--border-mid)'; }
+    if (uploadBtn) { uploadBtn.style.background='var(--teal)'; uploadBtn.style.color='white'; uploadBtn.style.borderColor='var(--teal)'; }
+  }
+}
+
+function previewImgUrl(url) {
+  const preview = document.getElementById('ap-url-preview');
+  const img     = document.getElementById('ap-url-img');
+  const errorEl = document.getElementById('ap-url-error');
+  if (!url || !url.startsWith('http')) { if (preview) preview.style.display = 'none'; return; }
+  img.onload  = () => {
+    if (preview) preview.style.display = 'block';
+    if (errorEl) errorEl.style.display = 'none';
+    currentImgData = url;
+  };
+  img.onerror = () => {
+    if (preview) preview.style.display = 'none';
+    if (errorEl) errorEl.style.display = 'block';
+    currentImgData = null;
+  };
+  img.src = url;
+}
+
+// ============================================================
+//  ADMIN GLOBAL SEARCH
+// ============================================================
+function adminSearch(q) {
+  q = (q || '').toLowerCase().trim();
+  if (!q) { refreshAdmin(); return; }
+  const results = [
+    ..._allOrders.filter(o =>
+      (o.id||'').toLowerCase().includes(q) ||
+      (o.buyerName||'').toLowerCase().includes(q) ||
+      (o.productName||'').toLowerCase().includes(q) ||
+      (o.sellerName||'').toLowerCase().includes(q)
+    ).map(o => ({ type:'order', data:o })),
+    ..._allUsers.filter(u =>
+      (u.name||'').toLowerCase().includes(q) ||
+      (u.email||'').toLowerCase().includes(q) ||
+      (u.phone||'').includes(q)
+    ).map(u => ({ type:'user', data:u })),
+    ..._allProds.filter(p =>
+      (p.name||'').toLowerCase().includes(q) ||
+      (p.seller||'').toLowerCase().includes(q) ||
+      (p.category||'').toLowerCase().includes(q)
+    ).map(p => ({ type:'product', data:p })),
+  ];
+  ['overview','orders','products','buyers','sellers','messages','feed','promotions','settings']
+    .forEach(p => { const e = document.getElementById('a-'+p); if(e) e.classList.remove('on'); });
+  document.getElementById('a-overview')?.classList.add('on');
+  document.getElementById('a-ticon').textContent  = '🔍';
+  document.getElementById('a-ttitle').textContent = 'Search Results (' + results.length + ')';
+  const lat = document.getElementById('a-latest');
+  if (!lat) return;
+  if (!results.length) { lat.innerHTML = '<div class="es"><div class="es-icon">🔍</div><h4>No results for "' + q + '"</h4></div>'; return; }
+  lat.innerHTML = results.map(r => {
+    if (r.type === 'order') {
+      const o = r.data;
+      return `<div class="lr"><div class="lthumb">${o.productEmoji||'📦'}</div>
+        <div class="linfo"><div class="ltitle">🧾 ${o.buyerName} → ${o.productName}</div>
+        <div class="lsub">${o.id} · ${o.date} · GHS ${o.amount.toFixed(2)}</div></div>
+        <span class="bdg ${o.status}">${o.status}</span></div>`;
+    }
+    if (r.type === 'user') {
+      const u = r.data;
+      return `<div class="lr"><div class="lthumb" style="font-weight:800;font-size:15px;color:var(--teal-dark)">${(u.name||'?')[0]}</div>
+        <div class="linfo"><div class="ltitle">${u.role==='buyer'?'🛍️':'🏪'} ${u.name}</div>
+        <div class="lsub">${u.email} · ${u.phone||'N/A'}</div></div>
+        <span class="bdg live">${u.role}</span></div>`;
+    }
+    if (r.type === 'product') {
+      const p = r.data;
+      return `<div class="lr"><div class="lthumb">${p.emoji||'📦'}</div>
+        <div class="linfo"><div class="ltitle">📦 ${p.name}</div>
+        <div class="lsub">${p.seller} · ${p.category}</div></div>
+        <div class="lprice">GHS ${p.price.toFixed(2)}</div></div>`;
+    }
+    return '';
+  }).join('');
+}
+
+// ============================================================
+//  ADMIN MESSAGES
+// ============================================================
+async function loadAdminMessages() {
+  const el = document.getElementById('a-msg-list');
+  if (!el) return;
+  el.innerHTML = '<div class="es"><div class="es-icon">⏳</div><h4>Loading...</h4></div>';
+  try {
+    const { data: threads } = await sb.from('threads').select('*');
+    if (!threads || !threads.length) {
+      el.innerHTML = '<div class="es"><div class="es-icon">💬</div><h4>No conversations yet</h4></div>'; return;
+    }
+    const { data: msgs } = await sb.from('messages').select('thread_id');
+    const counts = {};
+    (msgs||[]).forEach(m => { counts[m.thread_id] = (counts[m.thread_id]||0) + 1; });
+    el.innerHTML = threads.map(t => `
+      <div class="lr" onclick="openAdminThread('${t.id}')" style="cursor:pointer">
+        <div class="lthumb" style="font-size:22px">💬</div>
+        <div class="linfo">
+          <div class="ltitle">${t.buyer_name} ↔ ${t.seller_name}</div>
+          <div class="lsub">Thread: ${t.id} · ${counts[t.id]||0} messages</div>
+        </div>
+        <span class="bdg live">${counts[t.id]||0} msgs</span>
+        <div class="larrow">›</div>
+      </div>`).join('');
+  } catch(e) { el.innerHTML = '<div class="es"><div class="es-icon">❌</div><h4>Error loading messages</h4></div>'; }
+}
+
+async function openAdminThread(threadId) {
+  try {
+    const { data: msgs }   = await sb.from('messages').select('*').eq('thread_id', threadId).order('time', { ascending: true });
+    const { data: thread } = await sb.from('threads').select('*').eq('id', threadId).single();
+    if (!thread) return;
+    document.getElementById('admin-thread-modal').classList.add('open');
+    document.getElementById('atm-title').textContent = thread.buyer_name + ' ↔ ' + thread.seller_name;
+    const body = document.getElementById('atm-body');
+    if (!msgs || !msgs.length) {
+      body.innerHTML = '<div class="es"><div class="es-icon">💬</div><h4>No messages</h4></div>'; return;
+    }
+    body.innerHTML = msgs.map(m => {
+      const isB = m.from_role === 'buyer';
+      const time = new Date(m.time).toLocaleString('en-GB');
+      return `<div style="margin-bottom:12px;padding:10px 14px;border-radius:10px;background:${isB?'var(--teal-soft)':'#f0f0f0'}">
+        <div style="font-size:10px;font-weight:700;color:var(--text-muted);margin-bottom:4px">
+          ${isB?'🛍️ '+thread.buyer_name:'🏪 '+thread.seller_name} · ${time}
+        </div>
+        <div style="font-size:13px;color:var(--text)">${m.text}</div>
+      </div>`;
+    }).join('');
+  } catch(e) { toast('Error opening thread: ' + e.message, 'e'); }
+}
+
+// ============================================================
+//  ADMIN SETTINGS — SAVE FUNCTIONS
+// ============================================================
+async function loadAdminSettings() {
+  try {
+    const { data } = await sb.from('settings').select('*');
+    if (!data) return;
+    const map = {};
+    data.forEach(r => map[r.key] = r.value);
+    const set = (id, val) => { const e = document.getElementById(id); if (e && val) e.value = val; };
+    set('s-bank-name', map.bank_name);
+    set('s-acc-name',  map.bank_acc_name);
+    set('s-acc-num',   map.bank_acc_num);
+    set('s-branch',    map.bank_branch);
+    set('s-momo-network', map.momo_network);
+    set('s-momo-number',  map.momo_number);
+    set('s-momo-name',    map.momo_name);
+    set('s-platform-name',  map.platform_name);
+    set('s-support-email',  map.support_email);
+    set('s-currency',       map.currency);
+    set('s-edit-window',    map.edit_window_hours);
+    if (map.commission_pct) {
+      currentCommission = parseFloat(map.commission_pct) || 5;
+      const inp = document.getElementById('commission-input');
+      if (inp) inp.value = currentCommission;
+      previewCommission();
+    }
+  } catch(e) { console.error('Settings load error:', e); }
+}
+
+async function saveBankDetails() {
+  const g = id => document.getElementById(id)?.value?.trim() || '';
+  const bank = g('s-bank-name'), accName = g('s-acc-name'), accNum = g('s-acc-num'), branch = g('s-branch');
+  if (!bank || !accName || !accNum) { toast('Fill all bank fields', 'e'); return; }
+  const { error } = await sb.from('settings').upsert([
+    { key:'bank_name',     value:bank    },
+    { key:'bank_acc_name', value:accName },
+    { key:'bank_acc_num',  value:accNum  },
+    { key:'bank_branch',   value:branch  },
+  ]);
+  if (error) { toast('Save failed: ' + error.message, 'e'); return; }
+  toast('Bank details saved ✓');
+}
+
+async function saveMomoDetails() {
+  const net  = document.getElementById('s-momo-network')?.value || '';
+  const num  = document.getElementById('s-momo-number')?.value?.trim() || '';
+  const name = document.getElementById('s-momo-name')?.value?.trim() || '';
+  if (!num) { toast('Enter MoMo number', 'e'); return; }
+  const { error } = await sb.from('settings').upsert([
+    { key:'momo_network', value:net  },
+    { key:'momo_number',  value:num  },
+    { key:'momo_name',    value:name },
+  ]);
+  if (error) { toast('Save failed: ' + error.message, 'e'); return; }
+  toast('MoMo details saved ✓');
+}
+
+async function savePlatformSettings() {
+  const g = id => document.getElementById(id)?.value?.trim() || '';
+  const { error } = await sb.from('settings').upsert([
+    { key:'platform_name',      value: g('s-platform-name')  },
+    { key:'support_email',      value: g('s-support-email')  },
+    { key:'currency',           value: document.getElementById('s-currency')?.value || 'GHS' },
+    { key:'edit_window_hours',  value: g('s-edit-window')    },
+  ]);
+  if (error) { toast('Save failed: ' + error.message, 'e'); return; }
+  toast('Platform settings saved ✓');
+}
+
 
 </script>
 </body>
