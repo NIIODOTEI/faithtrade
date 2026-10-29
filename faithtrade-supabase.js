@@ -236,16 +236,25 @@ async function loadFeedPosts() {
     el.innerHTML = '<div class="es"><div class="es-icon">📰</div><h4>No posts yet</h4><p>Create the first community post.</p></div>';
     return;
   }
-  el.innerHTML = data.map(p => `
-    <div class="lr" style="align-items:flex-start">
-      <div class="lthumb" style="font-size:22px">${p.type?.split(' ')[0] || '📢'}</div>
-      <div class="linfo">
-        <div class="ltitle">${p.title}</div>
-        <div class="lsub">${new Date(p.created_at).toLocaleDateString('en-GB')} · ${p.type}</div>
-        <div style="font-size:12px;color:var(--text-mid);margin-top:4px">${p.content}</div>
-      </div>
-      <button class="del-btn" onclick="deleteFeedPost('${p.id}')">🗑️</button>
-    </div>`).join('');
+  el.innerHTML = `<div style="position:relative;padding:8px 0 8px 32px">
+    <div style="position:absolute;left:15px;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--teal-light),var(--teal-soft))"></div>
+    ${data.map(p => {
+      const icon = p.type?.split(' ')[0] || '📢';
+      const date = new Date(p.created_at).toLocaleDateString('en-GB');
+      return `<div style="position:relative;margin-bottom:20px">
+        <div style="position:absolute;left:-23px;top:12px;width:12px;height:12px;border-radius:50%;background:var(--teal);border:2px solid white;box-shadow:0 0 0 2px var(--teal)"></div>
+        <div style="background:white;border-radius:12px;padding:14px 16px;border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-left:8px;display:flex;gap:12px;align-items:flex-start">
+          <div style="font-size:22px">${icon}</div>
+          <div style="flex:1">
+            <div style="font-weight:800;font-size:13px;color:var(--text)">${p.title}</div>
+            <div style="font-size:11px;color:var(--text-muted);margin:2px 0 6px">${date} · ${p.type}</div>
+            <div style="font-size:12px;color:var(--text-mid);line-height:1.6">${p.content}</div>
+          </div>
+          <button class="del-btn" onclick="deleteFeedPost('${p.id}')" style="flex-shrink:0">🗑️</button>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
 }
 
 async function deleteFeedPost(id) {
@@ -351,15 +360,102 @@ function renderFeedList(el, data) {
     el.innerHTML = '<div class="es"><div class="es-icon">📰</div><h4>No announcements yet</h4><p>Check back soon for updates from FaithTrade.</p></div>';
     return;
   }
-  el.innerHTML = data.map(p => `
-    <div style="padding:16px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start">
-      <div style="font-size:28px;flex-shrink:0">${p.type?.split(' ')[0] || '📢'}</div>
-      <div style="flex:1">
-        <div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:4px">${p.title}</div>
-        <div style="font-size:12px;color:var(--text-mid);line-height:1.6;margin-bottom:6px">${p.content}</div>
-        <div style="font-size:10px;color:var(--text-muted);font-weight:600">${p.type} · ${new Date(p.created_at).toLocaleDateString('en-GB')}</div>
-      </div>
-    </div>`).join('');
+  // Render as vertical timeline / flowchat
+  el.innerHTML = `
+    <div style="position:relative;padding:8px 0 8px 32px">
+      <!-- Vertical line -->
+      <div style="position:absolute;left:15px;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--teal-light),var(--teal-soft))"></div>
+      ${data.map((p, i) => {
+        const icon  = p.type?.split(' ')[0] || '📢';
+        const date  = new Date(p.created_at);
+        const dateStr = date.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+        const timeStr = date.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+        const colors = {
+          '📢':'var(--teal)',      '🎉':'#4CAF50',
+          '⚠️':'#FF9800',         '💡':'#2196F3',
+          '🎯':'#9C27B0'
+        };
+        const color = colors[icon] || 'var(--teal)';
+        return `
+          <div style="position:relative;margin-bottom:28px">
+            <!-- Circle dot on timeline -->
+            <div style="position:absolute;left:-23px;top:14px;width:14px;height:14px;border-radius:50%;background:${color};border:3px solid white;box-shadow:0 0 0 2px ${color};z-index:1"></div>
+            <!-- Card -->
+            <div style="background:white;border-radius:14px;padding:16px 18px;border:1px solid var(--border);box-shadow:0 2px 10px rgba(46,139,122,0.08);margin-left:8px;transition:box-shadow .2s"
+              onmouseover="this.style.boxShadow='0 4px 20px rgba(46,139,122,0.15)'"
+              onmouseout="this.style.boxShadow='0 2px 10px rgba(46,139,122,0.08)'">
+              <!-- Header -->
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+                <div style="width:36px;height:36px;border-radius:10px;background:${color}20;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">${icon}</div>
+                <div style="flex:1">
+                  <div style="font-size:14px;font-weight:800;color:var(--text)">${p.title}</div>
+                  <div style="font-size:10px;color:var(--text-muted);margin-top:2px;font-weight:600">${p.type || 'Announcement'}</div>
+                </div>
+                <div style="text-align:right;flex-shrink:0">
+                  <div style="font-size:11px;font-weight:700;color:var(--text-muted)">${dateStr}</div>
+                  <div style="font-size:10px;color:var(--text-muted)">${timeStr}</div>
+                </div>
+              </div>
+              <!-- Content -->
+              <div style="font-size:13px;color:var(--text-mid);line-height:1.7;padding:10px 12px;background:var(--bg);border-radius:8px">${p.content}</div>
+              <!-- Footer -->
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">
+                <div style="font-size:10px;color:var(--text-muted)">Posted by <strong>FaithTrade</strong></div>
+                <div style="font-size:11px;padding:3px 10px;border-radius:100px;background:${color}15;color:${color};font-weight:700">${p.type?.split(' ').slice(1).join(' ') || 'Announcement'}</div>
+              </div>
+            </div>
+          </div>`;
+      }).join('')}
+    </div>`;
+}
+
+
+// ============================================================
+//  OTP BANNER — persistent, countdown, big code display
+// ============================================================
+function showOTPBanner(otp, email) {
+  // Remove existing banner if any
+  const existing = document.getElementById('otp-banner');
+  if (existing) existing.remove();
+
+  const banner = document.createElement('div');
+  banner.id = 'otp-banner';
+  banner.style.cssText = `
+    position:fixed; top:0; left:0; right:0; z-index:99999;
+    background:linear-gradient(135deg,var(--teal-darker),var(--teal-dark));
+    color:white; padding:16px 24px; text-align:center;
+    box-shadow:0 4px 20px rgba(0,0,0,0.3);
+    animation: slideDown .4s ease;
+  `;
+  banner.innerHTML = `
+    <div style="font-size:12px;opacity:.8;margin-bottom:4px">
+      📧 Verification code for <strong>${email}</strong> — valid for 10 minutes
+    </div>
+    <div style="font-size:36px;font-weight:900;letter-spacing:12px;color:#FFD700;margin:8px 0">
+      ${otp}
+    </div>
+    <div style="font-size:11px;opacity:.7" id="otp-banner-timer">⏱ 10:00 remaining</div>
+    <button onclick="document.getElementById('otp-banner').remove()" style="
+      position:absolute;top:10px;right:14px;background:rgba(255,255,255,.2);
+      border:none;color:white;border-radius:50%;width:26px;height:26px;
+      cursor:pointer;font-size:14px;line-height:1">✕</button>
+  `;
+  document.body.appendChild(banner);
+
+  // Countdown
+  let secs = 10 * 60;
+  const timer = setInterval(() => {
+    secs--;
+    const el = document.getElementById('otp-banner-timer');
+    if (!el || secs <= 0) {
+      clearInterval(timer);
+      const b = document.getElementById('otp-banner');
+      if (b) b.remove();
+      return;
+    }
+    const m = Math.floor(secs / 60), s = secs % 60;
+    el.textContent = '⏱ ' + m + ':' + String(s).padStart(2,'0') + ' remaining';
+  }, 1000);
 }
 
 function mapProduct(r) {
@@ -386,7 +482,8 @@ function mapOrder(r) {
     productEmoji: r.product_emoji || '📦',
     qty: r.qty, unitPrice: parseFloat(r.unit_price),
     amount: parseFloat(r.amount), status: r.status,
-    date: r.date, placedAt: r.placed_at
+    date: r.date, placedAt: parseInt(r.placed_at) || 0,
+    reviewed: r.reviewed || false
   };
 }
 function mapUser(r) {
@@ -513,8 +610,9 @@ async function resendOTP(role) {
   const expires = Date.now() + 10 * 60 * 1000;
   await sb.from('users').update({ otp, otp_expires: expires }).eq('id', pendingRegData.id);
   pendingRegData.otp = otp;
-  await sendOTPEmail(pendingRegData.email, otp, pendingRegData.name);
-  toast('New code sent! Check your inbox 📧');
+  const sentR = await sendOTPEmail(pendingRegData.email, otp, pendingRegData.name);
+  showOTPBanner(otp, pendingRegData.email);
+  if (sentR) toast('New code sent to your inbox 📧');
 }
 
 async function verifyOTP(role) {
@@ -699,10 +797,8 @@ async function doAuth(role, isReg) {
     // Send OTP email
     toast('Sending verification code to ' + email + ' 📧');
     const sent = await sendOTPEmail(email, otp, name);
-    if (!sent) {
-      // EmailJS not configured yet — show OTP in toast for testing
-      toast('⚠️ Email not configured. Your test code is: ' + otp, 'e');
-    }
+    showOTPBanner(otp, email);              // always visible, with countdown
+    if (sent) toast('Code also sent to ' + email + ' 📧');
 
     showOTPBox(role);
 
@@ -733,6 +829,7 @@ async function doAuth(role, isReg) {
       await sb.from('users').update({ otp, otp_expires: expires }).eq('id', data.id);
       pendingRegData.otp = otp;
       await sendOTPEmail(email, otp, data.name);
+      showOTPBanner(otp, email);
       showOTPBox(role);
       return;
     }
@@ -1170,7 +1267,7 @@ async function renderBuyerOrders() {
       </div>
       <span class="bdg ${o.status}">${o.status.charAt(0).toUpperCase() + o.status.slice(1)}</span>
       <div class="lprice">GHS ${o.amount.toFixed(2)}</div>
-      <div class="order-actions">${actBtns}${msgBtn}${o.status==='shipped'?`<button class="oact-btn" style="background:#E8F5E9;color:#2E7D32;border:1.5px solid #A5D6A7;border-radius:7px;padding:5px 11px;font-family:Nunito,sans-serif;font-size:11px;font-weight:700;cursor:pointer" onclick="confirmDelivery('${o.id}')">✅ Confirm Delivery</button>`:''}${o.status==='delivered'&&!o.reviewed?`<button class="oact-btn" style="background:#FFF9E6;color:#E65100;border:1.5px solid #FFE0B2;border-radius:7px;padding:5px 11px;font-family:Nunito,sans-serif;font-size:11px;font-weight:700;cursor:pointer" onclick="openReviewModal('${o.id}','${o.productId}','${o.productName}')">⭐ Review</button>`:''}</div>
+      <div class="order-actions">${actBtns}${msgBtn}${o.status==='shipped'?`<button class="oact-btn" style="background:#E8F5E9;color:#2E7D32;border:1.5px solid #A5D6A7;border-radius:7px;padding:5px 11px;font-family:Nunito,sans-serif;font-size:11px;font-weight:700;cursor:pointer" onclick="confirmDelivery('${o.id}')">✅ Confirm Delivery</button>`:''}${(o.status==='delivered'?(!o.reviewed?`<button class="oact-btn" style="background:#FFF9E6;color:#E65100;border:1.5px solid #FFE0B2;border-radius:7px;padding:5px 11px;font-family:Nunito,sans-serif;font-size:11px;font-weight:700;cursor:pointer" onclick="openReviewModal('${o.id}','${o.productId}','${o.productName}')">⭐ Review</button>`:`<span style="font-size:11px;color:var(--teal-dark);font-weight:700">✅ Reviewed</span>`):'')}</div>
     </div>`;
   }).join('');
 }
@@ -1614,10 +1711,14 @@ async function renderChatMessages(role, threadId) {
     lastDate = d;
     const timeStr = new Date(m.time).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
     const editedTag = m.edited ? ' <span style="font-size:9px;opacity:.6">(edited)</span>' : '';
-    const actions = isOut ? `<div style="display:flex;gap:6px;margin-top:5px;justify-content:flex-end">
-      <button onclick="editMsg(${m.id},'${m.text.replace(/'/g,"\\'")}','${role}')" style="background:none;border:none;cursor:pointer;font-size:11px;color:rgba(255,255,255,.7)">✏️</button>
-      <button onclick="deleteMsg(${m.id},'${role}')" style="background:none;border:none;cursor:pointer;font-size:11px;color:rgba(255,255,255,.7)">🗑️</button>
-    </div>` : '';
+    const msgAge   = Date.now() - m.time;
+    const canEdit  = isOut && msgAge < 30 * 60 * 1000;
+    const timeLeft = canEdit ? ' (' + Math.ceil((30*60*1000 - msgAge)/60000) + 'm left)' : '';
+    const actions  = canEdit ? `<div style="display:flex;gap:6px;margin-top:5px;justify-content:flex-end;align-items:center">
+      <span style="font-size:9px;color:rgba(255,255,255,.5)">${timeLeft}</span>
+      <button onclick="editMsg(${m.id},${m.time},'${m.text.replace(/'/g,"\\'").replace(/`/g,'\\`')}','${role}')" style="background:rgba(255,255,255,.15);border:none;cursor:pointer;font-size:11px;color:rgba(255,255,255,.85);padding:2px 7px;border-radius:5px">✏️ Edit</button>
+      <button onclick="deleteMsg(${m.id},${m.time},'${role}')" style="background:rgba(255,0,0,.2);border:none;cursor:pointer;font-size:11px;color:rgba(255,255,255,.85);padding:2px 7px;border-radius:5px">🗑️ Del</button>
+    </div>` : (isOut && msgAge >= 30 * 60 * 1000 ? `<div style="font-size:9px;color:rgba(255,255,255,.35);margin-top:3px;text-align:right">Edit window closed</div>` : '');
     return `${dateDivider}<div class="chat-msg ${isOut ? 'out' : 'in'}">${m.text}${editedTag}<div class="chat-msg-time">${timeStr}</div>${actions}</div>`;
   }).join('');
   bodyEl.scrollTop = bodyEl.scrollHeight;
@@ -1652,16 +1753,31 @@ async function sendMsg(role) {
   await renderChatMessages(role, activeChatThread);
 }
 
-async function editMsg(msgId, oldText, role) {
+async function editMsg(msgId, msgTime, oldText, role) {
+  // 30 minute edit window
+  const EDIT_WINDOW = 30 * 60 * 1000;
+  if (Date.now() - msgTime > EDIT_WINDOW) {
+    toast('Messages can only be edited within 30 minutes of sending', 'e'); return;
+  }
   const isB = role === 'buyer';
   editingMsgId = msgId;
   const inp = document.getElementById((isB ? 'b' : 's') + '-chat-msg');
-  if (inp) { inp.value = oldText; inp.placeholder = 'Editing message...'; inp.focus(); }
+  if (inp) {
+    inp.value = oldText;
+    inp.placeholder = 'Editing message... (30 min window)';
+    inp.focus();
+  }
   const sendBtn = document.getElementById((isB?'b':'s') + '-send-btn');
   if (sendBtn) sendBtn.textContent = '✏️';
+  toast('Editing message — press send or Enter to save');
 }
 
-async function deleteMsg(msgId, role) {
+async function deleteMsg(msgId, msgTime, role) {
+  // 30 minute delete window
+  const DEL_WINDOW = 30 * 60 * 1000;
+  if (Date.now() - msgTime > DEL_WINDOW) {
+    toast('Messages can only be deleted within 30 minutes of sending', 'e'); return;
+  }
   if (!confirm('Delete this message?')) return;
   const { error } = await sb.from('messages').delete().eq('id', msgId);
   if (error) { toast('Delete failed', 'e'); return; }
@@ -1851,13 +1967,14 @@ async function refreshAdmin() {
   if (abl) abl.innerHTML = buyers.length
     ? buyers.map(b => {
         const os = orders.filter(o => o.buyerId === b.id);
-        return '<div class="lr" onclick="openBuyerDetail('' + b.id + '')" style="cursor:pointer">'
-          + '<div class="lthumb" style="font-weight:800;font-size:16px;color:var(--teal-dark)">' + b.name[0] + '</div>'
-          + '<div class="linfo"><div class="ltitle">' + b.name + '</div>'
-          + '<div class="lsub">' + b.email + ' · ' + (b.phone||'N/A') + ' · ' + (b.country||'N/A') + ' · Joined ' + (b.joined||'N/A') + '</div></div>'
-          + '<span class="bdg live">' + os.length + ' orders</span>'
-          + '<div class="lprice">GHS ' + os.reduce((s,o)=>s+o.amount,0).toFixed(2) + '</div>'
-          + '<div class="larrow">›</div></div>';
+        const bid = b.id;
+        return `<div class="lr" onclick="openBuyerDetail('${bid}')" style="cursor:pointer">
+          <div class="lthumb" style="font-weight:800;font-size:16px;color:var(--teal-dark)">${b.name[0]}</div>
+          <div class="linfo"><div class="ltitle">${b.name}</div>
+          <div class="lsub">${b.email} · ${b.phone||'N/A'} · ${b.country||'N/A'} · Joined ${b.joined||'N/A'}</div></div>
+          <span class="bdg live">${os.length} orders</span>
+          <div class="lprice">GHS ${os.reduce((s,o)=>s+o.amount,0).toFixed(2)}</div>
+          <div class="larrow">›</div></div>`;
       }).join('')
     : '<div class="es"><div class="es-icon">🛍️</div><h4>No buyers yet</h4></div>';
 
@@ -1935,8 +2052,8 @@ async function sendResetCode() {
   const exp   = Date.now() + 10 * 60 * 1000;
   await sb.from('users').update({ otp, otp_expires: exp }).eq('id', user.id);
   const sent = await sendOTPEmail(email, otp, user.name);
-  if (!sent) toast(otp + ': Reset code (check email or use this)', 'otp');
-  else toast('Reset code sent to ' + email + ' — also: ' + otp, 'otp');
+  showOTPBanner(otp, email);
+  if (sent) toast('Reset code also sent to ' + email + ' 📧');
   document.getElementById('forgot-otp-section').style.display = 'block';
   document.getElementById('forgot-email').dataset.userId = user.id;
 }

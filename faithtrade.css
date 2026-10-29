@@ -953,3 +953,22 @@ body {
 .pay-label { font-size: 12px; font-weight: 800; color: var(--text); }
 .pay-sub { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
 .pay-details { animation: fu .2s ease; }
+/* =============================================
+   OTP BANNER ANIMATION
+   ============================================= */
+@keyframes slideDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+/* =============================================
+   FEED TIMELINE
+   ============================================= */
+.feed-timeline-dot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 3px solid white;
+  position: absolute;
+  left: -23px; top: 14px;
+  z-index: 1;
+}
