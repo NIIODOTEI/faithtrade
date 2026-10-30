@@ -729,7 +729,7 @@ function renderAuth(role, isReg) {
     ${passField('a-pass')}
     ${extra}
     <button class="auth-btn-main" onclick="doAuth('${role}',${isReg})" style="margin-top:12px">${isReg ? 'SIGN UP' : 'LOGIN'}</button>
-    ${role !== 'admin' ? `<span class="auth-forgot">FORGOT YOUR PASSWORD?</span>
+    ${role !== 'admin' ? `<span class="auth-forgot" role="button" tabindex="0" onclick="openForgot()" onkeydown="if(event.key==='Enter')openForgot()">Forgot your password?</span>
       <div class="auth-sw">${isReg
         ? `Already have an account? <a onclick="renderAuth('${role}',false)">SIGN IN</a>`
         : `Don't Have An Account? <a onclick="renderAuth('${role}',true)">SIGN UP</a>`
@@ -2038,6 +2038,21 @@ window.addEventListener('hashchange', function () {
     goAuth('admin');
   }
 });
+
+
+// ============================================================
+//  OPEN FORGOT-PASSWORD MODAL
+// ============================================================
+function openForgot() {
+  const emailInp = document.getElementById('forgot-email');
+  const typed    = document.getElementById('a-email')?.value?.trim() || '';
+  if (emailInp) { emailInp.value = typed.includes('@') ? typed : ''; delete emailInp.dataset.userId; }
+  const sec = document.getElementById('forgot-otp-section');
+  if (sec) sec.style.display = 'none';
+  ['forgot-otp-inp','forgot-new-pass'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+  document.getElementById('forgot-modal').classList.add('open');
+  setTimeout(() => emailInp && emailInp.focus(), 60);
+}
 
 // ============================================================
 //  FORGOT PASSWORD

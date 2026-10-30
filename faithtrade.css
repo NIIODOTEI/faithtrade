@@ -181,13 +181,16 @@ body {
   display: block;
   text-align: center;
   margin-top: 14px;
-  font-size: 11px;
-  color: var(--text-muted);
+  font-size: 12px;
+  color: var(--teal);
   cursor: pointer;
-  letter-spacing: .8px;
-  font-weight: 700;
+  letter-spacing: .6px;
+  font-weight: 800;
   text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
+.auth-forgot:hover { color: var(--teal-dark); }
 .auth-sw { text-align: center; margin-top: 16px; font-size: 13px; color: var(--text-muted); }
 .auth-sw a { color: var(--teal); font-weight: 800; cursor: pointer; text-decoration: none; }
 
